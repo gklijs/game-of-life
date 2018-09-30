@@ -2,3 +2,8 @@
 **/*.rs.bk
 Cargo.lock
 .idea
+pkg
+bin
+wasm-pack.log
+www/node_modules
+.DS_Store

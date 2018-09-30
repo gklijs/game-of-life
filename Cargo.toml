@@ -2,6 +2,11 @@
 name = "roads-rivers-and-residences"
 version = "0.1.0"
 authors = ["gklijs <g.klijs@gmail.com>"]
+description = "First game of life, then probably a carcassonne like game"
+homepage = "https://github.com/gklijs/roads-rivers-and-residences"
+repository = "https://github.com/gklijs/roads-rivers-and-residences"
+readme = "README.md"
+license = "MIT/Apache-2.0"
 
 [lib]
 crate-type = ["cdylib"]
