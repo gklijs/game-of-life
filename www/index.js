@@ -1,5 +1,5 @@
 import { memory } from "roads-rivers-and-residences/roads_rivers_and_residences_bg";
-import { Universe, Cell } from "roads-rivers-and-residences";
+import { Universe } from "roads-rivers-and-residences";
 
 const CELL_SIZE = 5; // px
 const GRID_COLOR = "#0000FF";
@@ -33,9 +33,9 @@ const drawCells = () => {
         for (let col = 0; col < width; col++) {
             const idx = getIndex(row, col);
 
-            ctx.fillStyle = cells[idx] === Cell.Dead
-                ? DEAD_COLOR
-                : ALIVE_COLOR;
+            ctx.fillStyle = cells[idx]
+                ? ALIVE_COLOR
+                : DEAD_COLOR;
 
             ctx.fillRect(
                 col * (CELL_SIZE + 1) + 1,
