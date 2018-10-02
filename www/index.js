@@ -1,3 +1,13 @@
-import * as wasm from "roads-rivers-and-residences";
+import { Universe } from "roads-rivers-and-residences";
 
-wasm.greet("Gerard");
+const pre = document.getElementById("game-of-life-canvas");
+const universe = Universe.new();
+
+const renderLoop = () => {
+    pre.textContent = universe.render();
+    universe.tick();
+
+    requestAnimationFrame(renderLoop);
+};
+
+requestAnimationFrame(renderLoop);
