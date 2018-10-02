@@ -1,11 +1,22 @@
 extern crate cfg_if;
 extern crate wasm_bindgen;
 extern crate js_sys;
-use std::fmt;
 
+use std::fmt;
 mod utils;
 
 use wasm_bindgen::prelude::*;
+
+#[wasm_bindgen]
+extern {
+    #[wasm_bindgen(js_namespace = console)]
+    fn log(msg: &str);
+}
+
+// A macro to provide `println!(..)`-style syntax for `console.log` logging.
+macro_rules! log {
+    ($($t:tt)*) => (log(&format!($($t)*)))
+}
 
 #[wasm_bindgen]
 pub struct Universe {
@@ -87,7 +98,6 @@ impl Universe {
                     // All other cells remain in the same state.
                     (otherwise, _) => otherwise,
                 };
-
                 next[idx] = next_cell;
             }
         }
