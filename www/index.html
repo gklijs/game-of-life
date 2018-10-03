@@ -13,21 +13,57 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
         }
-        #play-pause{
+
+        #play-bar {
             font-size: 20px;
             padding: 0;
             margin: 0 0 10px 0;
             height: 20px;
         }
-        #play-pause:hover{
+
+        #play-bar:after {
+            clear: both;
+        }
+
+        .play-bar-item {
+            float: left;
+            margin-right: 10px;
+        }
+
+        #play-pause:hover {
+            cursor: pointer;
+        }
+
+        #reset-button:hover {
+            cursor: pointer;
+        }
+
+        #stop-button:hover {
+            cursor: pointer;
+        }
+
+        #game-of-life-canvas:hover {
             cursor: pointer;
         }
     </style>
 </head>
 <body>
-<div id="play-pause">⏸</div>
+<div id="play-bar">
+    <div class="play-bar-item" id="play-pause">▶️</div>
+    <label class="play-bar-item">
+        ⏱<input id="speed-slider" type="range" min="1" max="50" step="1" value="1">
+    </label>
+    <div class="play-bar-item" id="step-counter">0</div>
+    <div class="play-bar-item" id="reset-button">🔄️</div>
+    <div class="play-bar-item" id="stop-button">⏹</div>
+    <label class="play-bar-item">
+        ↔️<input id="width-slider" type="range" min="1" max="400" step="1" value="260">
+    </label>
+    <label class="play-bar-item">
+        ↕️<input id="height-slider" type="range" min="1" max="400" step="1" value="140">
+    </label>
+</div>
 <canvas id="game-of-life-canvas"></canvas>
 <script src="./bootstrap.js"></script>
 </body>

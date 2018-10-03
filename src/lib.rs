@@ -1,14 +1,15 @@
 extern crate cfg_if;
 extern crate wasm_bindgen;
 extern crate js_sys;
+extern crate fixedbitset;
 
-use std::fmt;
 mod utils;
 
 use wasm_bindgen::prelude::*;
+use fixedbitset::FixedBitSet;
 
 #[wasm_bindgen]
-extern {
+extern "C" {
     #[wasm_bindgen(js_namespace = console)]
     fn log(msg: &str);
 }
@@ -22,20 +23,7 @@ macro_rules! log {
 pub struct Universe {
     width: u32,
     height: u32,
-    cells: Vec<bool>,
-}
-
-impl fmt::Display for Universe {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        for line in self.cells.as_slice().chunks(self.width as usize) {
-            for &cell in line {
-                let symbol = if cell { '◼' } else { '◻' };
-                write!(f, "{}", symbol)?;
-            }
-            write!(f, "\n")?;
-        }
-        Ok(())
-    }
+    cells: FixedBitSet,
 }
 
 impl Universe {
@@ -52,7 +40,7 @@ impl Universe {
                 let neighbor_row = (row + delta_row) % self.height;
                 let neighbor_col = (column + delta_col) % self.width;
                 let idx = self.get_index(neighbor_row, neighbor_col);
-                count += self.cells[idx] as u8;
+                count += self.cells.contains(idx) as u8;
             }
         }
         count
@@ -70,9 +58,15 @@ impl Universe {
         self.height
     }
 
-    pub fn cells(&self) -> *const bool {
-        self.cells.as_ptr()
+    pub fn cells(&self) -> *const u32 {
+        self.cells.as_slice().as_ptr()
     }
+
+    pub fn toggle_cell(&mut self, row: u32, column: u32) {
+        let idx = self.get_index(row, column);
+        self.cells.insert(idx)
+    }
+
     pub fn tick(&mut self) {
         let mut next = self.cells.clone();
 
@@ -98,30 +92,27 @@ impl Universe {
                     // All other cells remain in the same state.
                     (otherwise, _) => otherwise,
                 };
-                next[idx] = next_cell;
+                next.set(idx, next_cell);
             }
         }
 
         self.cells = next;
     }
-    pub fn new() -> Universe {
-        let width = 260;
-        let height = 145;
-
-        let cells = (0..width * height)
-            .map(|i| {
-                js_sys::Math::random() < 0.3
-            })
-            .collect();
+    pub fn new(width: u32, height: u32, fill_random: bool) -> Universe {
+        let size = (width * height) as usize;
+        let mut cells = FixedBitSet::with_capacity(size);
+        if fill_random {
+            for i in 0..size {
+                if js_sys::Math::random() < 0.3 {
+                    cells.put(i as usize);
+                }
+            }
+        };
 
         Universe {
             width,
             height,
             cells,
         }
-    }
-
-    pub fn render(&self) -> String {
-        self.to_string()
     }
 }
