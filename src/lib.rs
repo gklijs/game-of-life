@@ -47,6 +47,34 @@ impl Universe {
     }
 }
 
+const GLIDER: [bool; 25] = [
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    true,
+    false,
+    false,
+    false,
+    false,
+    false,
+    true,
+    false,
+    false,
+    true,
+    true,
+    true,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+];
+
 /// Public methods, exported to JavaScript.
 #[wasm_bindgen]
 impl Universe {
@@ -64,7 +92,29 @@ impl Universe {
 
     pub fn toggle_cell(&mut self, row: u32, column: u32) {
         let idx = self.get_index(row, column);
-        self.cells.insert(idx)
+        let mut next = self.cells.clone();
+        let new_cell = !self.cells[idx];
+        next.set(idx, new_cell);
+        self.cells = next;
+    }
+
+    pub fn glider(&mut self, row: u32, column: u32) {
+        self.print(row, column, &GLIDER)
+    }
+
+    fn print(&mut self, row: u32, column: u32, drawing: &[bool; 25]) {
+        let mut next = self.cells.clone();
+        let mut count = 0;
+        for delta_row in [self.height - 2, self.height - 1, 0, 1, 2].iter().cloned() {
+            for delta_col in [self.width - 2, self.width - 1, 0, 1, 2].iter().cloned() {
+                let neighbor_row = (row + delta_row) % self.height;
+                let neighbor_col = (column + delta_col) % self.width;
+                let idx = self.get_index(neighbor_row, neighbor_col);
+                next.set(idx, drawing[count]);
+                count += 1;
+            }
+        }
+        self.cells = next;
     }
 
     pub fn tick(&mut self) {
@@ -95,9 +145,9 @@ impl Universe {
                 next.set(idx, next_cell);
             }
         }
-
         self.cells = next;
     }
+
     pub fn new(width: u32, height: u32, fill_random: bool) -> Universe {
         let size = (width * height) as usize;
         let mut cells = FixedBitSet::with_capacity(size);

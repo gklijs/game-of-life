@@ -1,7 +1,7 @@
 import {memory} from "roads-rivers-and-residences/roads_rivers_and_residences_bg";
 import {Universe} from "roads-rivers-and-residences";
 
-const CELL_SIZE = 5; // px
+let cellSize = 5; // px
 const GRID_COLOR = "#000000";
 const DEAD_COLOR = "#FFFF00";
 const ALIVE_COLOR = "#FF0000";
@@ -18,6 +18,7 @@ const playPauseButton = document.getElementById("play-pause");
 const speedSlider = document.getElementById("speed-slider");
 const widthSlider = document.getElementById("width-slider");
 const heightSlider = document.getElementById("height-slider");
+const zoomSlider = document.getElementById("zoom-slider");
 const stepCounter = document.getElementById("step-counter");
 const resetButton = document.getElementById("reset-button");
 const stopButton = document.getElementById("stop-button");
@@ -56,10 +57,10 @@ const drawCells = () => {
                 : DEAD_COLOR;
 
             ctx.fillRect(
-                col * (CELL_SIZE + 1) + 1,
-                row * (CELL_SIZE + 1) + 1,
-                CELL_SIZE,
-                CELL_SIZE
+                col * (cellSize + 1) + 1,
+                row * (cellSize + 1) + 1,
+                cellSize,
+                cellSize
             );
         }
     }
@@ -73,14 +74,14 @@ const drawGrid = () => {
 
     // Vertical lines.
     for (let i = 0; i <= width; i++) {
-        ctx.moveTo(i * (CELL_SIZE + 1) + 1, 0);
-        ctx.lineTo(i * (CELL_SIZE + 1) + 1, (CELL_SIZE + 1) * height + 1);
+        ctx.moveTo(i * (cellSize + 1) + 1, 0);
+        ctx.lineTo(i * (cellSize + 1) + 1, (cellSize + 1) * height + 1);
     }
 
     // Horizontal lines.
     for (let j = 0; j <= height; j++) {
-        ctx.moveTo(0, j * (CELL_SIZE + 1) + 1);
-        ctx.lineTo((CELL_SIZE + 1) * width + 1, j * (CELL_SIZE + 1) + 1);
+        ctx.moveTo(0, j * (cellSize + 1) + 1);
+        ctx.lineTo((cellSize + 1) * width + 1, j * (cellSize + 1) + 1);
     }
 
     ctx.stroke();
@@ -121,13 +122,15 @@ playPauseButton.addEventListener("click", event => {
 
 const reset = (random) => {
     universe = Universe.new(width, height, random);
-    canvas.height = (CELL_SIZE + 1) * height + 1;
-    canvas.width = (CELL_SIZE + 1) * width + 1;
+    canvas.height = (cellSize + 1) * height + 1;
+    canvas.width = (cellSize + 1) * width + 1;
     totalSteps = 0;
     stepCounter.textContent = totalSteps;
 };
 
 canvas.addEventListener("click", event => {
+    console.log(event.metaKey);
+    console.log(event.altKey);
     const boundingRect = canvas.getBoundingClientRect();
 
     const scaleX = canvas.width / boundingRect.width;
@@ -136,10 +139,13 @@ canvas.addEventListener("click", event => {
     const canvasLeft = (event.clientX - boundingRect.left) * scaleX;
     const canvasTop = (event.clientY - boundingRect.top) * scaleY;
 
-    const row = Math.min(Math.floor(canvasTop / (CELL_SIZE + 1)), height - 1);
-    const col = Math.min(Math.floor(canvasLeft / (CELL_SIZE + 1)), width - 1);
-
-    universe.toggle_cell(row, col);
+    const row = Math.min(Math.floor(canvasTop / (cellSize + 1)), height - 1);
+    const col = Math.min(Math.floor(canvasLeft / (cellSize + 1)), width - 1);
+    if (event.metaKey) {
+        universe.glider(row, col);
+    } else {
+        universe.toggle_cell(row, col);
+    }
 
     drawGrid();
     drawCells();
@@ -150,13 +156,19 @@ speedSlider.addEventListener("change", event => {
 });
 
 widthSlider.addEventListener("change", event => {
-    width = widthSlider.value;
+    width = parseInt(widthSlider.value);
     reset(true);
 });
 
 heightSlider.addEventListener("change", event => {
-    height = heightSlider.value;
+    height = parseInt(heightSlider.value);
     reset(true)
+});
+
+zoomSlider.addEventListener("change", event => {
+    cellSize = parseInt(zoomSlider.value);
+    canvas.height = (cellSize + 1) * height + 1;
+    canvas.width = (cellSize + 1) * width + 1;
 });
 
 resetButton.addEventListener("click", event => {
