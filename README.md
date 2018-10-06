@@ -4,4 +4,4 @@ First working through [the rust wasm book](https://rustwasm.github.io/book/) lat
 ## How to build and deploy
 
 Run `wasm-pack build` in the main folder.
-Then in a separate terminal, in the www directory frist run `npm install` and then `npm run start`
+Then in a separate terminal, in the www directory first run `npm install` and then `npm run start`

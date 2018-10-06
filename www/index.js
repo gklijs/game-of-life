@@ -40,22 +40,21 @@ const isBitSet = (number, bitPosition) => {
     return (number & (1 << bitPosition)) !== 0;
 };
 
-const drawCells = () => {
+const drawAllCells = () => {
     const cellsPtr = universe.cells();
     const cells = new Uint32Array(memory.buffer, cellsPtr, Math.ceil((width * height) / 32));
 
     ctx.beginPath();
 
+    ctx.fillStyle = ALIVE_COLOR;
     for (let row = 0; row < height; row++) {
         for (let col = 0; col < width; col++) {
             const idx = getIndex(row, col);
             const number = cells[Math.floor(idx / 32)];
             const bitPosition = idx % 32;
-
-            ctx.fillStyle = isBitSet(number, bitPosition)
-                ? ALIVE_COLOR
-                : DEAD_COLOR;
-
+            if (!isBitSet(number, bitPosition)) {
+                continue;
+            }
             ctx.fillRect(
                 col * (cellSize + 1) + 1,
                 row * (cellSize + 1) + 1,
@@ -64,6 +63,65 @@ const drawCells = () => {
             );
         }
     }
+
+    ctx.fillStyle = DEAD_COLOR;
+    for (let row = 0; row < height; row++) {
+        for (let col = 0; col < width; col++) {
+            const idx = getIndex(row, col);
+            const number = cells[Math.floor(idx / 32)];
+            const bitPosition = idx % 32;
+            if (isBitSet(number, bitPosition)) {
+                continue;
+            }
+            ctx.fillRect(
+                col * (cellSize + 1) + 1,
+                row * (cellSize + 1) + 1,
+                cellSize,
+                cellSize
+            );
+        }
+    }
+
+    ctx.stroke();
+};
+
+const drawChangedCells = () => {
+    universe.update_changes();
+    const birthsPtr = universe.births();
+    const births = new Uint32Array(memory.buffer, birthsPtr, universe.nr_of_births());
+
+    ctx.beginPath();
+
+    ctx.fillStyle = ALIVE_COLOR;
+    births.forEach(
+        idx => {
+            const row = Math.floor(idx/width);
+            const col = idx % width;
+            ctx.fillRect(
+                col * (cellSize + 1) + 1,
+                row * (cellSize + 1) + 1,
+                cellSize,
+                cellSize
+            );
+        }
+    )
+
+    const deathsPtr = universe.deaths();
+    const deaths = new Uint32Array(memory.buffer, deathsPtr, universe.nr_of_deaths());
+
+    ctx.fillStyle = DEAD_COLOR;
+    deaths.forEach(
+        idx => {
+            const row = Math.floor(idx/width);
+            const col = idx % width;
+            ctx.fillRect(
+                col * (cellSize + 1) + 1,
+                row * (cellSize + 1) + 1,
+                cellSize,
+                cellSize
+            );
+        }
+    )
 
     ctx.stroke();
 };
@@ -92,8 +150,7 @@ const renderLoop = () => {
         universe.tick();
         totalSteps++;
     }
-    drawGrid();
-    drawCells();
+    drawChangedCells();
     stepCounter.textContent = totalSteps;
     animationId = requestAnimationFrame(renderLoop);
 };
@@ -126,11 +183,11 @@ const reset = (random) => {
     canvas.width = (cellSize + 1) * width + 1;
     totalSteps = 0;
     stepCounter.textContent = totalSteps;
+    drawGrid();
+    drawAllCells();
 };
 
 canvas.addEventListener("click", event => {
-    console.log(event.metaKey);
-    console.log(event.altKey);
     const boundingRect = canvas.getBoundingClientRect();
 
     const scaleX = canvas.width / boundingRect.width;
@@ -146,9 +203,7 @@ canvas.addEventListener("click", event => {
     } else {
         universe.toggle_cell(row, col);
     }
-
-    drawGrid();
-    drawCells();
+    drawChangedCells();
 });
 
 speedSlider.addEventListener("change", event => {
@@ -169,6 +224,8 @@ zoomSlider.addEventListener("change", event => {
     cellSize = parseInt(zoomSlider.value);
     canvas.height = (cellSize + 1) * height + 1;
     canvas.width = (cellSize + 1) * width + 1;
+    drawGrid();
+    drawAllCells();
 });
 
 resetButton.addEventListener("click", event => {
@@ -178,6 +235,5 @@ resetButton.addEventListener("click", event => {
 stopButton.addEventListener("click", event => {
     pause();
     reset(false);
-    drawGrid();
-    drawCells();
+    drawAllCells();
 });
