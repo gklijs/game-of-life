@@ -32,4 +32,6 @@ console_error_panic_hook = { version = "0.1.1", optional = true }
 wee_alloc = { version = "0.4.1", optional = true }
 
 [profile.release]
-debug = true
+debug = false
+lto = true
+opt-level = 's'

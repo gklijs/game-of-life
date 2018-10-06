@@ -185,6 +185,7 @@ const reset = (random) => {
     stepCounter.textContent = totalSteps;
     drawGrid();
     drawAllCells();
+    universe.update_changes();
 };
 
 canvas.addEventListener("click", event => {
