@@ -1,8 +1,8 @@
 [package]
-name = "roads-rivers-and-residences"
+name = "game-of-life-3d"
 version = "0.1.0"
 authors = ["gklijs <g.klijs@gmail.com>"]
-description = "First game of life, then probably a carcassonne like game"
+description = "3d wasm version of game of life"
 homepage = "https://github.com/gklijs/roads-rivers-and-residences"
 repository = "https://github.com/gklijs/roads-rivers-and-residences"
 readme = "README.md"

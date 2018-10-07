@@ -1,24 +1,23 @@
-import {memory} from "roads-rivers-and-residences/roads_rivers_and_residences_bg";
-import {Universe} from "roads-rivers-and-residences";
+import {memory} from "game-of-life-3d/game_of_life_3d_bg";
+import {Universe} from "game-of-life-3d";
 
-let cellSize = 5; // px
+const CELL_SIZE = 20; // px
 const GRID_COLOR = "#000000";
 const DEAD_COLOR = "#FFFF00";
 const ALIVE_COLOR = "#FF0000";
 
-// Construct the universe, and get its width and height.
+// global var for the universe, and get its size.
 let universe = null;
-let width = 260;
-let height = 140;
+let size = 10;
+let layer = 0;
 
 // Give the canvas room for all of our cells and a 1px border
 // around each of them.
 const canvas = document.getElementById("game-of-life-canvas");
 const playPauseButton = document.getElementById("play-pause");
 const speedSlider = document.getElementById("speed-slider");
-const widthSlider = document.getElementById("width-slider");
-const heightSlider = document.getElementById("height-slider");
-const zoomSlider = document.getElementById("zoom-slider");
+const sizeSlider = document.getElementById("size-slider");
+const layerSlider = document.getElementById("layer-slider");
 const stepCounter = document.getElementById("step-counter");
 const resetButton = document.getElementById("reset-button");
 const stopButton = document.getElementById("stop-button");
@@ -28,8 +27,8 @@ let animationId = null;
 let ticks = 1;
 let totalSteps = 0;
 
-const getIndex = (row, column) => {
-    return row * width + column;
+const getIndex = (column, row, layer) => {
+    return column + row * size + layer * size * size;
 };
 
 const isPaused = () => {
@@ -40,44 +39,45 @@ const isBitSet = (number, bitPosition) => {
     return (number & (1 << bitPosition)) !== 0;
 };
 
-const drawAllCells = () => {
+const drawAllCellsInLayer = () => {
     const cellsPtr = universe.cells();
-    const cells = new Uint32Array(memory.buffer, cellsPtr, Math.ceil((width * height) / 32));
+    const cells = new Uint32Array(memory.buffer, cellsPtr, Math.ceil(Math.pow(size, 3) / 32));
 
     ctx.beginPath();
 
     ctx.fillStyle = ALIVE_COLOR;
-    for (let row = 0; row < height; row++) {
-        for (let col = 0; col < width; col++) {
-            const idx = getIndex(row, col);
+
+    for (let col = 0; col < size; col++) {
+        for (let row = 0; row < size; row++) {
+            const idx = getIndex(col, row, layer);
             const number = cells[Math.floor(idx / 32)];
             const bitPosition = idx % 32;
             if (!isBitSet(number, bitPosition)) {
                 continue;
             }
             ctx.fillRect(
-                col * (cellSize + 1) + 1,
-                row * (cellSize + 1) + 1,
-                cellSize,
-                cellSize
+                col * (CELL_SIZE + 1) + 1,
+                row * (CELL_SIZE + 1) + 1,
+                CELL_SIZE,
+                CELL_SIZE
             );
         }
     }
 
     ctx.fillStyle = DEAD_COLOR;
-    for (let row = 0; row < height; row++) {
-        for (let col = 0; col < width; col++) {
-            const idx = getIndex(row, col);
+    for (let col = 0; col < size; col++) {
+        for (let row = 0; row < size; row++) {
+            const idx = getIndex(col, row, layer);
             const number = cells[Math.floor(idx / 32)];
             const bitPosition = idx % 32;
             if (isBitSet(number, bitPosition)) {
                 continue;
             }
             ctx.fillRect(
-                col * (cellSize + 1) + 1,
-                row * (cellSize + 1) + 1,
-                cellSize,
-                cellSize
+                col * (CELL_SIZE + 1) + 1,
+                row * (CELL_SIZE + 1) + 1,
+                CELL_SIZE,
+                CELL_SIZE
             );
         }
     }
@@ -85,7 +85,7 @@ const drawAllCells = () => {
     ctx.stroke();
 };
 
-const drawChangedCells = () => {
+const drawChangedCellsInLayer = () => {
     universe.update_changes();
     const birthsPtr = universe.births();
     const births = new Uint32Array(memory.buffer, birthsPtr, universe.nr_of_births());
@@ -95,13 +95,17 @@ const drawChangedCells = () => {
     ctx.fillStyle = ALIVE_COLOR;
     births.forEach(
         idx => {
-            const row = Math.floor(idx/width);
-            const col = idx % width;
+            const for_layer = Math.floor(idx / (size * size));
+            if (for_layer !== layer) {
+                return;
+            }
+            const row = Math.floor((idx - (layer * size * size))/size);
+            const col = idx % size;
             ctx.fillRect(
-                col * (cellSize + 1) + 1,
-                row * (cellSize + 1) + 1,
-                cellSize,
-                cellSize
+                col * (CELL_SIZE + 1) + 1,
+                row * (CELL_SIZE + 1) + 1,
+                CELL_SIZE,
+                CELL_SIZE
             );
         }
     )
@@ -112,13 +116,17 @@ const drawChangedCells = () => {
     ctx.fillStyle = DEAD_COLOR;
     deaths.forEach(
         idx => {
-            const row = Math.floor(idx/width);
-            const col = idx % width;
+            const for_layer = Math.floor(idx / (size * size));
+            if (for_layer !== layer) {
+                return;
+            }
+            const row = Math.floor((idx - (layer * size * size))/size);
+            const col = idx % size;
             ctx.fillRect(
-                col * (cellSize + 1) + 1,
-                row * (cellSize + 1) + 1,
-                cellSize,
-                cellSize
+                col * (CELL_SIZE + 1) + 1,
+                row * (CELL_SIZE + 1) + 1,
+                CELL_SIZE,
+                CELL_SIZE
             );
         }
     )
@@ -131,15 +139,15 @@ const drawGrid = () => {
     ctx.strokeStyle = GRID_COLOR;
 
     // Vertical lines.
-    for (let i = 0; i <= width; i++) {
-        ctx.moveTo(i * (cellSize + 1) + 1, 0);
-        ctx.lineTo(i * (cellSize + 1) + 1, (cellSize + 1) * height + 1);
+    for (let i = 0; i <= size; i++) {
+        ctx.moveTo(i * (CELL_SIZE + 1) + 1, 0);
+        ctx.lineTo(i * (CELL_SIZE + 1) + 1, (CELL_SIZE + 1) * size + 1);
     }
 
     // Horizontal lines.
-    for (let j = 0; j <= height; j++) {
-        ctx.moveTo(0, j * (cellSize + 1) + 1);
-        ctx.lineTo((cellSize + 1) * width + 1, j * (cellSize + 1) + 1);
+    for (let j = 0; j <= size; j++) {
+        ctx.moveTo(0, j * (CELL_SIZE + 1) + 1);
+        ctx.lineTo((CELL_SIZE + 1) * size + 1, j * (CELL_SIZE + 1) + 1);
     }
 
     ctx.stroke();
@@ -150,7 +158,7 @@ const renderLoop = () => {
         universe.tick();
         totalSteps++;
     }
-    drawChangedCells();
+    drawChangedCellsInLayer();
     stepCounter.textContent = totalSteps;
     animationId = requestAnimationFrame(renderLoop);
 };
@@ -178,13 +186,13 @@ playPauseButton.addEventListener("click", event => {
 });
 
 const reset = (random) => {
-    universe = Universe.new(width, height, random);
-    canvas.height = (cellSize + 1) * height + 1;
-    canvas.width = (cellSize + 1) * width + 1;
+    universe = Universe.new(size, size, size, random);
+    canvas.height = (CELL_SIZE + 1) * size + 1;
+    canvas.width = (CELL_SIZE + 1) * size + 1;
     totalSteps = 0;
     stepCounter.textContent = totalSteps;
     drawGrid();
-    drawAllCells();
+    drawAllCellsInLayer();
     universe.update_changes();
 };
 
@@ -197,36 +205,31 @@ canvas.addEventListener("click", event => {
     const canvasLeft = (event.clientX - boundingRect.left) * scaleX;
     const canvasTop = (event.clientY - boundingRect.top) * scaleY;
 
-    const row = Math.min(Math.floor(canvasTop / (cellSize + 1)), height - 1);
-    const col = Math.min(Math.floor(canvasLeft / (cellSize + 1)), width - 1);
+    const col = Math.min(Math.floor(canvasLeft / (CELL_SIZE + 1)), size - 1);
+    const row = Math.min(Math.floor(canvasTop / (CELL_SIZE + 1)), size - 1);
     if (event.metaKey) {
-        universe.glider(row, col);
+        universe.glider(col, row, layer);
     } else {
-        universe.toggle_cell(row, col);
+        universe.toggle_cell(col, row, layer);
     }
-    drawChangedCells();
+    drawChangedCellsInLayer();
 });
 
 speedSlider.addEventListener("change", event => {
     ticks = speedSlider.value;
 });
 
-widthSlider.addEventListener("change", event => {
-    width = parseInt(widthSlider.value);
+sizeSlider.addEventListener("change", event => {
+    size = parseInt(sizeSlider.value);
+    layerSlider.max = size - 1;
     reset(true);
 });
 
-heightSlider.addEventListener("change", event => {
-    height = parseInt(heightSlider.value);
-    reset(true)
-});
-
-zoomSlider.addEventListener("change", event => {
-    cellSize = parseInt(zoomSlider.value);
-    canvas.height = (cellSize + 1) * height + 1;
-    canvas.width = (cellSize + 1) * width + 1;
+layerSlider.addEventListener("change", event => {
+    layer = parseInt(layerSlider.value);
     drawGrid();
-    drawAllCells();
+    drawAllCellsInLayer();
+    universe.update_changes();
 });
 
 resetButton.addEventListener("click", event => {
@@ -236,5 +239,5 @@ resetButton.addEventListener("click", event => {
 stopButton.addEventListener("click", event => {
     pause();
     reset(false);
-    drawAllCells();
+    drawAllCellsInLayer();
 });
