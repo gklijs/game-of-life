@@ -5,5 +5,5 @@ First working through [the rust wasm book](https://rustwasm.github.io/book/) lat
 
 Run `wasm-pack build` in the main folder.
 Then `npm link` in the created pkg folder
-Then `npm link roads-rivers-and-residences` in the www folder
+Then `npm link game-of-life-3d` in the www folder
 Then www directory first run `npm install` and then `npm run start`

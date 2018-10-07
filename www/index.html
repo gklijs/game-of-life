@@ -58,13 +58,10 @@
     <div class="play-bar-item" id="reset-button" title="reset the state to a random one">🔄️</div>
     <div class="play-bar-item" id="stop-button" title="stop and clear the table">⏹</div>
     <label class="play-bar-item" title="change the width, this will also reset the game">
-        ↔️<input id="width-slider" type="range" min="1" max="400" step="1" value="260">
+        ↔️<input id="size-slider" type="range" min="4" max="40" step="1" value="10">
     </label>
-    <label class="play-bar-item" title="change the height, this will also reset the game">
-        ↕️<input id="height-slider" type="range" min="1" max="400" step="1" value="140">
-    </label>
-    <label class="play-bar-item" title="change how big each cell is shown">
-        🔎<input id="zoom-slider" type="range" min="1" max="15" step="1" value="5">
+    <label class="play-bar-item" title="the layer shown">
+        ↕️<input id="layer-slider" type="range" min="0" max="9" step="1" value="0">
     </label>
 </div>
 <canvas id="game-of-life-canvas">

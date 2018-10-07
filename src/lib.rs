@@ -23,6 +23,7 @@ macro_rules! log {
 pub struct Universe {
     width: u32,
     height: u32,
+    depth: u32,
     cells_a: FixedBitSet,
     cells_b: FixedBitSet,
     cells_js: FixedBitSet,
@@ -31,50 +32,110 @@ pub struct Universe {
     to_death: Vec<u32>,
 }
 
-fn get_index(row: u32, column: u32, width: u32) -> usize {
-    (row * width + column) as usize
+fn get_index(column: u32, row: u32, layer: u32, width: u32, height: u32) -> usize {
+    (column + row * width + layer * width * height ) as usize
 }
 
 fn live_neighbor_count(
-    row: u32,
     column: u32,
+    row: u32,
+    layer: u32,
     width: u32,
     height: u32,
+    depth: u32,
     current: &FixedBitSet,
 ) -> u8 {
     let mut count = 0;
-
-    let north = if row == 0 { height - 1 } else { row - 1 };
-
-    let south = if row == height - 1 { 0 } else { row + 1 };
 
     let west = if column == 0 { width - 1 } else { column - 1 };
 
     let east = if column == width - 1 { 0 } else { column + 1 };
 
-    let nw = get_index(north, west, width);
+    let north = if row == 0 { height - 1 } else { row - 1 };
+
+    let south = if row == height - 1 { 0 } else { row + 1 };
+
+    let up = if layer == 0 { depth - 1 } else { layer - 1 };
+
+    let down = if layer == depth - 1 { 0 } else { layer + 1 };
+
+    let unw = get_index(west, north, up, width, height);
+    count += current[unw] as u8;
+
+    let un = get_index(column, north, up, width, height);
+    count += current[un] as u8;
+
+    let une = get_index(east, north, up, width, height);
+    count += current[une] as u8;
+
+    let uw = get_index(west, row, up, width, height);
+    count += current[uw] as u8;
+
+    let ue = get_index(east, row, up, width, height);
+    count += current[ue] as u8;
+
+    let usw = get_index(west, south, up, width, height);
+    count += current[usw] as u8;
+
+    let us = get_index(column, south, up, width, height);
+    count += current[us] as u8;
+
+    let qse = get_index(east, south, up, width, height);
+    count += current[qse] as u8;
+
+    let u = get_index(column, row, up, width, height);
+    count += current[u] as u8;
+
+    let nw = get_index(west, north, layer, width, height);
     count += current[nw] as u8;
 
-    let n = get_index(north, column, width);
+    let n = get_index(column, north, layer, width, height);
     count += current[n] as u8;
 
-    let ne = get_index(north, east, width);
+    let ne = get_index(east, north, layer, width, height);
     count += current[ne] as u8;
 
-    let w = get_index(row, west, width);
+    let w = get_index(west, row, layer, width, height);
     count += current[w] as u8;
 
-    let e = get_index(row, east, width);
+    let e = get_index(east, row, layer, width, height);
     count += current[e] as u8;
 
-    let sw = get_index(south, west, width);
+    let sw = get_index(west, south, layer, width, height);
     count += current[sw] as u8;
 
-    let s = get_index(south, column, width);
+    let s = get_index(column, south, layer, width, height);
     count += current[s] as u8;
 
-    let se = get_index(south, east, width);
+    let se = get_index(east, south, layer, width, height);
     count += current[se] as u8;
+
+    let dnw = get_index(west, north, down, width, height);
+    count += current[dnw] as u8;
+
+    let dn = get_index(column, north, down, width, height);
+    count += current[dn] as u8;
+
+    let dne = get_index(east, north, down, width, height);
+    count += current[dne] as u8;
+
+    let dw = get_index(west, row, down, width, height);
+    count += current[dw] as u8;
+
+    let de = get_index(east, row, down, width, height);
+    count += current[de] as u8;
+
+    let dsw = get_index(west, south, down, width, height);
+    count += current[dsw] as u8;
+
+    let ds = get_index(column, south, down, width, height);
+    count += current[ds] as u8;
+
+    let dse = get_index(east, south, down, width, height);
+    count += current[dse] as u8;
+
+    let d = get_index(column, row, down, width, height);
+    count += current[d] as u8;
 
     count
 }
@@ -148,7 +209,7 @@ impl Universe {
         } else {
             (&mut self.cells_js, &self.cells_b)
         };
-        let size = (self.width * self.height) as usize;
+        let size = (self.width * self.height * self.depth) as usize;
         for i in 0..size {
             if current[i] != synced[i] {
                 if current[i] {
@@ -161,14 +222,14 @@ impl Universe {
         }
     }
 
-    pub fn toggle_cell(&mut self, row: u32, column: u32) {
+    pub fn toggle_cell(&mut self, column: u32, row: u32, layer: u32) {
         let (next, current) = if self.a_latest {
             (&mut self.cells_b, &self.cells_a)
         } else {
             (&mut self.cells_a, &self.cells_b)
         };
-        let idx = get_index(row, column, self.width);
-        let size = (self.width * self.height) as usize;
+        let idx = get_index(column, row, layer, self.width, self.height);
+        let size = (self.width * self.height * self.depth) as usize;
         for i in 0..size {
             if i == idx {
                 next.set(i, !current[i]);
@@ -179,22 +240,28 @@ impl Universe {
         self.a_latest = !self.a_latest;
     }
 
-    pub fn glider(&mut self, row: u32, column: u32) {
-        self.print(row, column, &GLIDER)
+    pub fn glider(&mut self, column: u32, row: u32, layer: u32) {
+        let first_layer = if layer <= 1 { self.depth - 2 + layer } else { layer - 2 };
+        let second_layer = if layer == 0 { self.depth - 1 } else { layer - 1 };
+        let last_layer = if layer == self.depth - 1 { 0 } else { layer + 1 };
+        self.print(column, row, first_layer, &CLEAN);
+        self.print(column, row, second_layer, &GLIDER);
+        self.print(column, row, layer, &GLIDER);
+        self.print(column, row, last_layer, &CLEAN);
     }
 
-    fn print(&mut self, row: u32, column: u32, drawing: &[bool; 25]) {
+    fn print(&mut self, column: u32, row: u32, layer: u32, drawing: &[bool; 25]) {
         let current = if self.a_latest {
             &mut self.cells_a
         } else {
             &mut self.cells_b
         };
         let mut count = 0;
-        for delta_row in [self.height - 2, self.height - 1, 0, 1, 2].iter().cloned() {
-            for delta_col in [self.width - 2, self.width - 1, 0, 1, 2].iter().cloned() {
+        for delta_col in [self.width - 2, self.width - 1, 0, 1, 2].iter().cloned() {
+            let neighbor_column = (column + delta_col) % self.width;
+            for delta_row in [self.height - 2, self.height - 1, 0, 1, 2].iter().cloned() {
                 let neighbor_row = (row + delta_row) % self.height;
-                let neighbor_col = (column + delta_col) % self.width;
-                let idx = get_index(neighbor_row, neighbor_col, self.width);
+                let idx = get_index(neighbor_column, neighbor_row, layer, self.width, self.height);
                 current.set(idx, drawing[count]);
                 count += 1;
             }
@@ -210,32 +277,34 @@ impl Universe {
         };
 
         for row in 0..self.height {
-            for col in 0..self.width {
-                let idx = get_index(row, col, self.width);
-                let cell = current[idx];
-                let live_neighbors =
-                    live_neighbor_count(row, col, self.width, self.height, current);
+            for column in 0..self.width {
+                for layer in 0..self.depth {
+                    let idx = get_index(column, row, layer, self.width, self.height);
+                    let cell = current[idx];
+                    let live_neighbors =
+                        live_neighbor_count(column, row, layer, self.width, self.height, self.depth, current);
 
-                match (cell, live_neighbors) {
-                    // Rule 1: Any live cell with fewer than two live neighbours
-                    // dies, as if caused by underpopulation.
-                    (true, x) if x < 2 => next.set(idx, false),
-                    // Rule 3: Any live cell with more than three live
-                    // neighbours dies, as if by overpopulation.
-                    (true, x) if x > 3 => next.set(idx, false),
-                    // Rule 4: Any dead cell with exactly three live neighbours
-                    // becomes a live cell, as if by reproduction.
-                    (false, 3) => next.set(idx, true),
-                    // All other cells remain in the same state.
-                    (enabled, _) => next.set(idx, enabled),
-                };
+                    match (cell, live_neighbors) {
+                        // Rule 1: Any live cell with fewer than five live neighbours
+                        // dies, as if caused by underpopulation.
+                        (true, x) if x < 5 => next.set(idx, false),
+                        // Rule 3: Any live cell with more than 7 live
+                        // neighbours dies, as if by overpopulation.
+                        (true, x) if x > 7 => next.set(idx, false),
+                        // Rule 4: Any dead cell with exactly 6 live neighbours
+                        // becomes a live cell, as if by reproduction.
+                        (false, 6) => next.set(idx, true),
+                        // All other cells remain in the same state.
+                        (enabled, _) => next.set(idx, enabled),
+                    };
+                }
             }
         }
         self.a_latest = !self.a_latest;
     }
 
-    pub fn new(width: u32, height: u32, fill_random: bool) -> Universe {
-        let size = (width * height) as usize;
+    pub fn new(width: u32, height: u32, depth: u32, fill_random: bool) -> Universe {
+        let size = (width * height * depth) as usize;
         let mut cells_a = FixedBitSet::with_capacity(size);
         if fill_random {
             for i in 0..size {
@@ -252,6 +321,7 @@ impl Universe {
         Universe {
             width,
             height,
+            depth,
             cells_a,
             cells_b,
             cells_js,
@@ -282,6 +352,34 @@ const GLIDER: [bool; 25] = [
     true,
     true,
     true,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+];
+
+const CLEAN: [bool; 25] = [
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
     false,
     false,
     false,
