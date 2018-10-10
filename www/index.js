@@ -11,6 +11,7 @@ const ALIVE_COLOR = "#FF0000";
 let universe = null;
 let size = 10;
 let twoModelShown = true;
+let isSquare = true;
 
 const playPauseButton = document.getElementById("play-pause");
 const speedSlider = document.getElementById("speed-slider");
@@ -19,6 +20,7 @@ const stepCounter = document.getElementById("step-counter");
 const resetButton = document.getElementById("reset-button");
 const stopButton = document.getElementById("stop-button");
 const modelButton = document.getElementById("model-button");
+const figureButton = document.getElementById("figure-button");
 const layerSlider = document.getElementById("layer-slider");
 
 let animationId = null;
@@ -28,24 +30,6 @@ let totalSteps = 0;
 const isPaused = () => {
     return animationId === null;
 };
-
-const drawAllCells = () => {
-    const cells = getAllCells();
-    if (twoModelShown){
-        twoModel.drawAllCells(cells);
-    }else{
-        threeModel.drawAllCells(cells);
-    }
-};
-
-const getAllCells = () =>{
-    if (universe === null){
-        return [];
-    }else{
-        const cellsPtr = universe.cells();
-        return new Uint32Array(memory.buffer, cellsPtr, Math.ceil(Math.pow(size, 3) / 32));
-    }
-}
 
 const updateCells = () => {
     universe.update_changes();
@@ -95,13 +79,18 @@ playPauseButton.addEventListener("click", event => {
 });
 
 const reset = (random) => {
+    if (twoModelShown){
+        twoModel.destroy();
+    }else{
+        threeModel.destroy();
+    }
     universe = Universe.new(size, size, size, random);
     totalSteps = 0;
     stepCounter.textContent = totalSteps;
     if (twoModelShown){
-        twoModel.init(universe);
+        twoModel.init(universe, isPaused, isSquare);
     }else{
-        threeModel.init(universe);
+        threeModel.init(universe, isPaused, isSquare);
     }
 };
 
@@ -122,19 +111,40 @@ resetButton.addEventListener("click", event => {
 stopButton.addEventListener("click", event => {
     pause();
     reset(false);
-    drawAllCells();
 });
 
 modelButton.addEventListener("click", event => {
+    if(universe === null){
+        universe = Universe.new(size, size, size, true);
+    }
     if (twoModelShown){
         twoModel.destroy();
-        threeModel.init(universe);
+        threeModel.init(universe, isPaused, isSquare);
         twoModelShown = false;
         modelButton.innerText = "3D"
     }else{
         threeModel.destroy();
-        twoModel.init(universe);
+        twoModel.init(universe, isPaused, isSquare);
         twoModelShown = true;
         modelButton.innerText = "2D"
+    }
+});
+
+figureButton.addEventListener("click", event => {
+    if(universe === null){
+        universe = Universe.new(size, size, size, true);
+    }
+    if(isSquare){
+        figureButton.innerText = "🔘️"
+    }else{
+        figureButton.innerText = "🔲️"
+    }
+    isSquare = !isSquare;
+    if (twoModelShown){
+        twoModel.destroy();
+        twoModel.init(universe, isPaused, isSquare);
+    }else{
+        threeModel.destroy();
+        threeModel.init(universe, isPaused, isSquare);
     }
 });

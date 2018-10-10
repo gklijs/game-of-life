@@ -1,5 +1,3 @@
-import {memory} from "game-of-life-3d/game_of_life_3d_bg";
-
 const utils = require("./utils");
 
 const twoModel = document.getElementById("two-model");
@@ -9,15 +7,17 @@ const layerSlider = document.getElementById("layer-slider");
 const layerDisplay = document.getElementById("layer-display");
 
 const GRID_COLOR = "#000000";
-const DEAD_COLOR = "#FFFF00";
+const DEAD_COLOR = "#FFFFFF";
 const ALIVE_COLOR = "#FF0000";
 
 let universe = null;
 let size = null;
 let cellSize = null;
+let isSquare = null;
 let layer = 0;
 
-export const init = (newUniverse) => {
+export const init = (newUniverse, isPaused, square) => {
+    isSquare = square;
     twoModel.classList.add("is-visible");
     size = newUniverse.width();
     universe = newUniverse;
@@ -49,33 +49,48 @@ const drawGrid = () => {
     ctx.stroke();
 };
 
-export const drawFromUniverse = () => {
+const drawFromUniverse = () => {
     if (universe !== null) {
-        const cellsPtr = universe.cells();
-        drawAllCells(new Uint32Array(memory.buffer, cellsPtr, Math.ceil(Math.pow(size, 3) / 32)));
+        const cells = utils.getCellsFromUniverse(universe);
         universe.update_changes();
+        drawAllCellsInLayer(cells);
     }
 };
 
-export const drawAllCells = (cells) => {
-    ctx.beginPath();
+const drawSquare = (col, row) => {
+    ctx.fillRect(
+        col * (cellSize + 1) + 1,
+        row * (cellSize + 1) + 1,
+        cellSize,
+        cellSize
+    );
+};
 
+const drawCircle = (col, row) => {
+    ctx.beginPath();
+    ctx.arc(
+        col * (cellSize + 1) + 1 + cellSize / 2,
+        row * (cellSize + 1) + 1 + cellSize / 2,
+        cellSize / 2,
+        0,
+        2 * Math.PI);
+    ctx.fill()
+};
+
+const drawAllCellsInLayer = (cells) => {
     ctx.fillStyle = ALIVE_COLOR;
 
     for (let col = 0; col < size; col++) {
         for (let row = 0; row < size; row++) {
             const idx = utils.getIndex(col, row, layer, size);
-            const number = cells[Math.floor(idx / 32)];
-            const bitPosition = idx % 32;
-            if (!utils.isBitSet(number, bitPosition)) {
+            if (!utils.isCellAlive(idx, cells)) {
                 continue;
             }
-            ctx.fillRect(
-                col * (cellSize + 1) + 1,
-                row * (cellSize + 1) + 1,
-                cellSize,
-                cellSize
-            );
+            if (isSquare) {
+                drawSquare(col, row);
+            } else {
+                drawCircle(col, row);
+            }
         }
     }
 
@@ -83,26 +98,15 @@ export const drawAllCells = (cells) => {
     for (let col = 0; col < size; col++) {
         for (let row = 0; row < size; row++) {
             const idx = utils.getIndex(col, row, layer, size);
-            const number = cells[Math.floor(idx / 32)];
-            const bitPosition = idx % 32;
-            if (utils.isBitSet(number, bitPosition)) {
+            if (utils.isCellAlive(idx, cells)) {
                 continue;
             }
-            ctx.fillRect(
-                col * (cellSize + 1) + 1,
-                row * (cellSize + 1) + 1,
-                cellSize,
-                cellSize
-            );
+            drawSquare(col, row);
         }
     }
-
-    ctx.stroke();
 };
 
 export const updateCells = (births, deaths) => {
-    ctx.beginPath();
-
     ctx.fillStyle = ALIVE_COLOR;
     births.forEach(
         idx => {
@@ -112,12 +116,11 @@ export const updateCells = (births, deaths) => {
             }
             const row = Math.floor((idx - (layer * size * size)) / size);
             const col = idx % size;
-            ctx.fillRect(
-                col * (cellSize + 1) + 1,
-                row * (cellSize + 1) + 1,
-                cellSize,
-                cellSize
-            );
+            if (isSquare) {
+                drawSquare(col, row);
+            } else {
+                drawCircle(col, row);
+            }
         }
     );
 
@@ -130,16 +133,9 @@ export const updateCells = (births, deaths) => {
             }
             const row = Math.floor((idx - (layer * size * size)) / size);
             const col = idx % size;
-            ctx.fillRect(
-                col * (cellSize + 1) + 1,
-                row * (cellSize + 1) + 1,
-                cellSize,
-                cellSize
-            );
+            drawSquare(col, row);
         }
     );
-
-    ctx.stroke();
 };
 
 const onWindowResize = () => {
@@ -172,6 +168,8 @@ canvas.addEventListener("click", event => {
     const row = Math.min(Math.floor(canvasTop / (cellSize + 1)), size - 1);
     if (event.metaKey) {
         universe.glider(col, row, layer);
+    } else if (event.altKey) {
+        universe.pulse(col, row, layer);
     } else {
         universe.toggle_cell(col, row, layer);
     }
