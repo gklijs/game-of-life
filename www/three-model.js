@@ -7,8 +7,10 @@ const scene = new THREE.Scene();
 let camera = null;
 let renderer = null;
 let size = null;
-let cells = [];
+let cellShapes = null;
 let cameraReady = false;
+let parentPaused = null;
+let isSquare = null;
 let mouseX = 0;
 let mouseY = 0;
 let windowHalfX = threeModel.clientWidth / 2;
@@ -16,10 +18,10 @@ let windowHalfY = threeModel.clientHeight / 2;
 
 const initCamera = () => {
     camera = new THREE.PerspectiveCamera(50, threeModel.clientWidth / threeModel.clientHeight, 1, 2000);
-    camera.position.x = 200;
-    camera.position.y = 200;
-    camera.position.z = 200;
-    camera.lookAt(new THREE.Vector3(0, 0, 0));
+    camera.position.x = 700;
+    camera.position.y = 700;
+    camera.position.z = 700;
+    camera.lookAt(new THREE.Vector3(200, 200, 200));
 };
 
 const initRenderer = () => {
@@ -33,28 +35,22 @@ const initRenderer = () => {
     return renderer;
 };
 
-const initPlane = () => {
-    const planeGeometry = new THREE.PlaneBufferGeometry(400, 400, 10, 10);
-    const planeMaterial = new THREE.MeshStandardMaterial({color: 0xFFFF00});
-    const plane = new THREE.Mesh(planeGeometry, planeMaterial);
-    plane.position.set(0, -100, 0);
-
-    plane.receiveShadow = true;
-    plane.rotation.x = -90 * Math.PI / 180;
-    scene.add(plane);
-};
-
-const initCells = () => {
-    const amountOfCells = Math.pow(size, 3);
-    cells.length = amountOfCells;
-    const geometry = new THREE.SphereBufferGeometry(5, 32, 32);
+const initCells = (numberOfCells) => {
+    const cellSize = Math.floor(200 / size);
+    cellShapes = new Array(numberOfCells);
+    const geometry = isSquare ? new THREE.BoxBufferGeometry(cellSize * 2, cellSize * 2, cellSize * 2) : new THREE.SphereBufferGeometry(cellSize, 32, 32);
     const material = new THREE.MeshStandardMaterial({color: 0xFF0000});
-    for (let i = 0; i < amountOfCells; i++) {
-        const liveCell = new THREE.Mesh(geometry, material);
-        liveCell.castShadow = true;
-        liveCell.position.set(i, i, i);
-        cells[i] = liveCell;
-        scene.add(liveCell);
+    const liveCell = new THREE.Mesh(geometry, material);
+    liveCell.castShadow = true;
+    liveCell.receiveShadow = true;
+    for (let layer = 0; layer < size; layer++) {
+        for (let row = 0; row < size; row++) {
+            for (let column = 0; column < size; column++) {
+                const cell = liveCell.clone();
+                cell.position.set(column * cellSize * 2, layer * cellSize * 2, row * cellSize * 2);
+                cellShapes[utils.getIndex(column, row, layer, size)] = cell;
+            }
+        }
     }
 };
 
@@ -77,44 +73,66 @@ const initLights = () => {
 };
 
 export const destroy = () => {
-    //needs to remove all cells from the scene
     threeModel.classList.remove("is-visible");
     size = null;
+    cellShapes.forEach(
+        cell => {
+            scene.remove(cell);
+            cell.geometry.dispose();
+        }
+    )
 };
 
-export const init = (universe) => {
+export const init = (universe, isPaused, square) => {
+    parentPaused = isPaused;
+    isSquare = square;
     threeModel.classList.add("is-visible");
     size = universe.width();
+    const numberOfCells = Math.pow(size, 3);
     if (!cameraReady) {
         initRenderer();
-        initPlane();
         initCamera();
         initLights();
         cameraReady = true;
     }
-    initCells();
+    initCells(numberOfCells);
+    const cells = utils.getCellsFromUniverse(universe);
+    universe.update_changes();
+    for (let idx = 0; idx < numberOfCells; idx++) {
+        if (utils.isCellAlive(idx, cells)) {
+            scene.add(cellShapes[idx])
+        }
+    }
+    render();
 };
 
 const render = () => {
     camera.position.x += (mouseX - camera.position.x) * .05;
-    camera.position.y += (-mouseY + 200 - camera.position.y) * .05;
-    camera.lookAt(scene.position);
+    camera.position.y += (-mouseY + 700 - camera.position.y) * .05;
+    camera.lookAt(new THREE.Vector3(200, 200, 200));
     renderer.render(scene, camera);
 };
 
-export const drawAllCells = (cells) => {
-    render()
-    //todo
-};
-
 export const updateCells = (births, deaths) => {
+    births.forEach(
+        idx => {
+            scene.add(cellShapes[idx]);
+        }
+    );
+    deaths.forEach(
+        idx => {
+            scene.remove(cellShapes[idx]);
+        }
+    );
     render()
-    //todo
 };
 
 const onDocumentMouseMove = (event) => {
     mouseX = event.clientX - windowHalfX;
     mouseY = event.clientY - windowHalfY;
+    if (parentPaused()) {
+        render()
+    }
 };
 
 const onDocumentTouchStart = (event) => {
@@ -123,6 +141,9 @@ const onDocumentTouchStart = (event) => {
         mouseX = event.touches[0].pageX - windowHalfX;
         mouseY = event.touches[0].pageY - windowHalfY;
     }
+    if (parentPaused()) {
+        render()
+    }
 };
 
 const onDocumentTouchMove = (event) => {
@@ -130,6 +151,9 @@ const onDocumentTouchMove = (event) => {
         event.preventDefault();
         mouseX = event.touches[0].pageX - windowHalfX;
         mouseY = event.touches[0].pageY - windowHalfY;
+    }
+    if (parentPaused()) {
+        render()
     }
 };
 
@@ -140,6 +164,9 @@ const onWindowResize = () => {
         camera.aspect = threeModel.clientWidth / threeModel.clientHeight;
         camera.updateProjectionMatrix();
         renderer.setSize(threeModel.clientWidth, threeModel.clientHeight);
+        if (parentPaused) {
+            render()
+        }
     }
 };
 

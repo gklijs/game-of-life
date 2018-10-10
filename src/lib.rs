@@ -250,6 +250,16 @@ impl Universe {
         self.print(column, row, last_layer, &CLEAN);
     }
 
+    pub fn pulse(&mut self, column: u32, row: u32, layer: u32) {
+        let first_layer = if layer <= 1 { self.depth - 2 + layer } else { layer - 2 };
+        let second_layer = if layer == 0 { self.depth - 1 } else { layer - 1 };
+        let last_layer = if layer == self.depth - 1 { 0 } else { layer + 1 };
+        self.print(column, row, first_layer, &CLEAN);
+        self.print(column, row, second_layer, &PULSE_ONE);
+        self.print(column, row, layer, &PULSE_TWO);
+        self.print(column, row, last_layer, &CLEAN);
+    }
+
     fn print(&mut self, column: u32, row: u32, layer: u32, drawing: &[bool; 25]) {
         let current = if self.a_latest {
             &mut self.cells_a
@@ -352,6 +362,62 @@ const GLIDER: [bool; 25] = [
     true,
     true,
     true,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+];
+
+const PULSE_ONE: [bool; 25] = [
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    true,
+    true,
+    false,
+    false,
+    false,
+    true,
+    false,
+    true,
+    false,
+    false,
+    true,
+    true,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+];
+
+const PULSE_TWO: [bool; 25] = [
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    true,
+    true,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
     false,
     false,
     false,
