@@ -18,10 +18,8 @@ let windowHalfY = threeModel.clientHeight / 2;
 
 const initCamera = () => {
     camera = new THREE.PerspectiveCamera(50, threeModel.clientWidth / threeModel.clientHeight, 1, 2000);
-    camera.position.x = 700;
-    camera.position.y = 700;
-    camera.position.z = 700;
-    camera.lookAt(new THREE.Vector3(200, 200, 200));
+    camera.position.set(400, 700, 400);
+    camera.lookAt(scene.position);
 };
 
 const initRenderer = () => {
@@ -29,8 +27,9 @@ const initRenderer = () => {
         antialias: true,
         alpha: true
     });
-    renderer.setSize(threeModel.clientWidth, threeModel.clientHeight);
     renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.setSize(threeModel.clientWidth, threeModel.clientHeight);
     threeModel.appendChild(renderer.domElement);
     return renderer;
 };
@@ -43,11 +42,13 @@ const initCells = (numberOfCells) => {
     const liveCell = new THREE.Mesh(geometry, material);
     liveCell.castShadow = true;
     liveCell.receiveShadow = true;
+    const correction = 0 - size * (cellSize + 1);
+    const distance = cellSize * 2 + 1;
     for (let layer = 0; layer < size; layer++) {
         for (let row = 0; row < size; row++) {
             for (let column = 0; column < size; column++) {
                 const cell = liveCell.clone();
-                cell.position.set(column * cellSize * 2, layer * cellSize * 2, row * cellSize * 2);
+                cell.position.set(correction + column * distance, correction + layer * distance, correction + row * distance);
                 cellShapes[utils.getIndex(column, row, layer, size)] = cell;
             }
         }
@@ -55,21 +56,16 @@ const initCells = (numberOfCells) => {
 };
 
 const initLights = () => {
-    const light = new THREE.DirectionalLight(0xffffff, 1);
-    light.position.set(-100, 500, 400);
+    const light = new THREE.SpotLight(0xFFFFFF, 1);
+    light.position.set(0, 400, 0);
+
+    light.target = scene;
     light.castShadow = true;
-
-    const d = 200;
-    light.shadow.camera.left = -d;
-    light.shadow.camera.right = d;
-    light.shadow.camera.top = d;
-    light.shadow.camera.bottum = -d;
-
-    light.shadow.camera.far = 1000;
+    light.receiveShadow = true;
+    light.shadow.camera.near = 0.5;
 
     scene.add(light);
-    scene.add(new THREE.HemisphereLight(0xffffbb, 0x080820, 0.6));
-    scene.add(new THREE.AmbientLight(0xa59f75, 0.6));
+    scene.add(new THREE.AmbientLight(0xAAAAAA));
 };
 
 export const destroy = () => {
@@ -103,13 +99,17 @@ export const init = (universe, isPaused, square) => {
             scene.add(cellShapes[idx])
         }
     }
-    render();
+    onWindowResize()
 };
 
 const render = () => {
-    camera.position.x += (mouseX - camera.position.x) * .05;
-    camera.position.y += (-mouseY + 700 - camera.position.y) * .05;
-    camera.lookAt(new THREE.Vector3(200, 200, 200));
+    if (mouseX !== 0) {
+        camera.position.x += (mouseX - camera.position.x) * .05;
+    }
+    if (mouseY !== 0) {
+        camera.position.y += (-mouseY + 700 - camera.position.y) * .05;
+    }
+    camera.lookAt(scene.position);
     renderer.render(scene, camera);
 };
 
@@ -127,11 +127,25 @@ export const updateCells = (births, deaths) => {
     render()
 };
 
+const inMiddle = (currentX, currentY) => {
+    return currentX > windowHalfX * 0.3
+        && currentX < window.innerWidth - windowHalfX * 0.3
+        && currentY > 30 + windowHalfY * 0.3
+        && currentY < window.innerHeight - windowHalfX * 0.3
+};
+
 const onDocumentMouseMove = (event) => {
-    mouseX = event.clientX - windowHalfX;
-    mouseY = event.clientY - windowHalfY;
-    if (parentPaused()) {
-        render()
+    let currentX = event.clientX;
+    let currentY = event.clientY;
+    if (inMiddle(currentX, currentY)) {
+        mouseX = currentX - windowHalfX;
+        mouseY = currentY - windowHalfY - 30;
+        if (parentPaused()) {
+            render()
+        }
+    } else {
+        mouseX = 0;
+        mouseY = 0;
     }
 };
 
