@@ -15,17 +15,30 @@ let size = null;
 let cellSize = null;
 let isSquare = null;
 let layer = 0;
+let eventHandlersSet = false;
+
+export const setEventHandlers = () => {
+    if (!eventHandlersSet) {
+        canvas.addEventListener("click", editUniverse);
+        layerSlider.addEventListener("change", changeLayer);
+        eventHandlersSet = true;
+    }
+};
 
 export const init = (newUniverse, isPaused, square) => {
     isSquare = square;
     twoModel.classList.add("is-visible");
     size = newUniverse.width();
     universe = newUniverse;
+    layerSlider.max = size - 1;
     onWindowResize();
+    setEventHandlers();
+    window.addEventListener("resize", onWindowResize);
 };
 
 export const destroy = () => {
     twoModel.classList.remove("is-visible");
+    window.removeEventListener("resize", onWindowResize);
     size = null;
     universe = null;
 };
@@ -52,7 +65,6 @@ const drawGrid = () => {
 const drawFromUniverse = () => {
     if (universe !== null) {
         const cells = utils.getCellsFromUniverse(universe);
-        universe.update_changes();
         drawAllCellsInLayer(cells);
     }
 };
@@ -152,7 +164,7 @@ const onWindowResize = () => {
     }
 };
 
-canvas.addEventListener("click", event => {
+const editUniverse = (event) => {
     if (universe === null) {
         return;
     }
@@ -174,12 +186,10 @@ canvas.addEventListener("click", event => {
         universe.toggle_cell(col, row, layer);
     }
     drawFromUniverse()
-});
+};
 
-window.addEventListener("resize", onWindowResize, false);
-
-layerSlider.addEventListener("change", event => {
+const changeLayer = () => {
     layer = parseInt(layerSlider.value);
     layerDisplay.innerText = layer + 1;
     drawFromUniverse();
-});
+};
