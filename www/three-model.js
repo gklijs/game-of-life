@@ -11,14 +11,15 @@ let cellShapes = null;
 let sceneSet = false;
 let parentPaused = null;
 let isSquare = null;
-let mouseX = 0;
-let mouseY = 0;
+let moveX = 0;
+let moveZ = 0;
 let threeHalfX = null;
 let threeHalfY = null;
+const zoom = 1000;
 
 const initCamera = () => {
     camera = new THREE.PerspectiveCamera(50, threeModel.clientWidth / threeModel.clientHeight, 1, 2000);
-    camera.position.set(400, 700, 400);
+    camera.position.set(0, 1000, 0);
     camera.lookAt(scene.position);
 };
 
@@ -42,8 +43,8 @@ const initCells = (numberOfCells) => {
     const liveCell = new THREE.Mesh(geometry, material);
     liveCell.castShadow = true;
     liveCell.receiveShadow = true;
-    const correction = 0 - size * (cellSize + 1);
     const distance = cellSize * 2 + 1;
+    const correction = -(size * distance) / 2;
     for (let layer = 0; layer < size; layer++) {
         for (let row = 0; row < size; row++) {
             for (let column = 0; column < size; column++) {
@@ -57,7 +58,7 @@ const initCells = (numberOfCells) => {
 
 const initLights = () => {
     const light = new THREE.SpotLight(0xFFFFFF, 1);
-    light.position.set(0, 400, 0);
+    light.position.set(0, 700, 0);
 
     light.target = scene;
     light.castShadow = true;
@@ -111,14 +112,26 @@ export const init = (universe, isPaused, square) => {
     window.addEventListener("resize", onWindowResize);
 };
 
+const bringInRange = (number, range) => {
+    if (number > range) {
+        return range;
+    }
+    if (number < -range) {
+        return -range;
+    }
+    return number
+};
+
 const render = () => {
-    if (mouseX !== 0) {
-        camera.position.x += (mouseX - camera.position.x) * .05;
+    if (moveX !== 0 || moveZ !== 0) {
+        const newX = bringInRange(camera.position.x + moveX * .005, zoom);
+        const maxZ = Math.sqrt(Math.pow(zoom, 2) - Math.pow(newX, 2));
+        const newZ = bringInRange(camera.position.z + moveZ * .005, maxZ);
+        const newY = Math.sqrt(Math.pow(zoom, 2) - Math.pow(newX, 2) - Math.pow(newZ, 2));
+        console.log("moving camera to x: " + newX + " y: " + newY + " z:" + newZ);
+        camera.position.set(newX, newY, newZ);
+        camera.lookAt(scene.position);
     }
-    if (mouseY !== 0) {
-        camera.position.y += (-mouseY + 700 - camera.position.y) * .05;
-    }
-    camera.lookAt(scene.position);
     renderer.render(scene, camera);
 };
 
@@ -143,40 +156,34 @@ const inMiddle = (currentX, currentY) => {
         && currentY < window.innerHeight - threeHalfX * 0.2
 };
 
-const onDocumentMouseMove = (event) => {
-    let currentX = event.offsetX;
-    let currentY = event.offsetY;
+const updateMove = (currentX, currentY) => {
     if (inMiddle(currentX, currentY)) {
-        mouseX = currentX - threeHalfX;
-        mouseY = currentY - threeHalfY - 30;
+        moveX = currentX > threeHalfX ? 2 * threeHalfX - currentX : currentX - 2 * threeHalfX;
+        moveZ = currentY > threeHalfY ? 2 * threeHalfY - currentY : currentY - 2 * threeHalfY;
         if (parentPaused()) {
             render()
         }
     } else {
-        mouseX = 0;
-        mouseY = 0;
+        moveX = 0;
+        moveZ = 0;
     }
+};
+
+const onDocumentMouseMove = (event) => {
+    updateMove(event.offsetX, event.offsetY);
 };
 
 const onDocumentTouchStart = (event) => {
     if (event.touches.length > 1) {
         event.preventDefault();
-        mouseX = event.touches[0].pageX - threeHalfX;
-        mouseY = event.touches[0].pageY - threeHalfY;
-    }
-    if (parentPaused()) {
-        render()
+        updateMove(event.touches[0].clientX, event.touches[0].clientY);
     }
 };
 
 const onDocumentTouchMove = (event) => {
     if (event.touches.length === 1) {
         event.preventDefault();
-        mouseX = event.touches[0].pageX - threeHalfX;
-        mouseY = event.touches[0].pageY - threeHalfY;
-    }
-    if (parentPaused()) {
-        render()
+        updateMove(event.touches[0].clientX, event.touches[0].clientY);
     }
 };
 
