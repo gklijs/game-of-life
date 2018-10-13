@@ -1,6 +1,6 @@
-import {memory} from "game-of-life-3d/game_of_life_3d_bg";
 import {Universe} from "game-of-life-3d";
 
+const utils = require("./utils");
 const threeModel = require("./three-model")
 const twoModel = require("./two-model")
 
@@ -21,7 +21,6 @@ const resetButton = document.getElementById("reset-button");
 const stopButton = document.getElementById("stop-button");
 const modelButton = document.getElementById("model-button");
 const figureButton = document.getElementById("figure-button");
-const layerSlider = document.getElementById("layer-slider");
 
 let animationId = null;
 let ticks = 1;
@@ -33,11 +32,8 @@ const isPaused = () => {
 
 const updateCells = () => {
     universe.update_changes();
-    const birthsPtr = universe.births();
-    const births = new Uint32Array(memory.buffer, birthsPtr, universe.nr_of_births());
-    
-    const deathsPtr = universe.deaths();
-    const deaths = new Uint32Array(memory.buffer, deathsPtr, universe.nr_of_deaths());
+    const births = utils.getArrayFromMemory(universe.births(), universe.nr_of_births());
+    const deaths = utils.getArrayFromMemory(universe.deaths(), universe.nr_of_deaths());
 
     if (twoModelShown){
         twoModel.updateCells(births, deaths);
@@ -70,14 +66,6 @@ const pause = () => {
     animationId = null;
 };
 
-playPauseButton.addEventListener("click", event => {
-    if (isPaused()) {
-        play();
-    } else {
-        pause();
-    }
-});
-
 const reset = (random) => {
     if (twoModelShown){
         twoModel.destroy();
@@ -94,13 +82,20 @@ const reset = (random) => {
     }
 };
 
+playPauseButton.addEventListener("click", event => {
+    if (isPaused()) {
+        play();
+    } else {
+        pause();
+    }
+});
+
 speedSlider.addEventListener("change", event => {
     ticks = speedSlider.value;
 });
 
 sizeSlider.addEventListener("change", event => {
     size = parseInt(sizeSlider.value);
-    layerSlider.max = size - 1;
     reset(true);
 });
 
