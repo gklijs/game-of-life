@@ -23,7 +23,9 @@ const modelButton = document.getElementById("model-button");
 const figureButton = document.getElementById("figure-button");
 
 let paused = true;
-let ticks = 1;
+let ticksPerRender = 1;
+let skipRenders = 1;
+let totalRenders = 0;
 let totalSteps = 0;
 
 const updateCells = () => {
@@ -43,11 +45,14 @@ const updateCells = () => {
 
 const renderLoop = () => {
     if(!paused && universe!= null){
-        for (let i = 0; i < ticks; i++) {
-            universe.tick();
-            totalSteps++;
+        if(totalRenders % skipRenders == 0){
+            for (let i = 0; i < ticksPerRender; i++) {
+                universe.tick();
+                totalSteps++;
+            }
             stepCounter.textContent = totalSteps;
         }
+        totalRenders++;
     }
     updateCells();
     requestAnimationFrame(renderLoop);
@@ -80,7 +85,14 @@ playPauseButton.addEventListener("click", event => {
 });
 
 speedSlider.addEventListener("change", event => {
-    ticks = speedSlider.value;
+    const speedValue = parseInt(speedSlider.value);
+    if(speedValue >= 10){
+        skipRenders = 1;
+        ticksPerRender = Math.pow(speedValue-9, 2);
+    }else{
+        skipRenders = Math.pow(10-speedValue, 2) + 1;
+        ticksPerRender = 1;
+    }
 });
 
 sizeSlider.addEventListener("change", event => {
