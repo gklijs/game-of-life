@@ -3,6 +3,10 @@ import * as THREE from "three";
 const utils = require("./utils");
 
 const threeModel = document.getElementById("three-model");
+const webGlBox = document.getElementById("web-gl-box");
+const zoomSlider = document.getElementById("zoom-slider");
+const zoomDisplay = document.getElementById("zoom-display");
+
 let scene = null;
 let camera = null;
 let renderer = null;
@@ -13,12 +17,12 @@ let isSquare = null;
 let moveXZ = 0;
 let directionXZ = 1;
 let moveY = 0;
-let threeHalfX = null;
-let threeHalfY = null;
-const zoom = 1000;
+let boxHalfX = null;
+let boxHalfY = null;
+let zoom = 1000;
 
 const initCamera = () => {
-    camera = new THREE.PerspectiveCamera(50, threeModel.clientWidth / threeModel.clientHeight, 1, 2000);
+    camera = new THREE.PerspectiveCamera(50, webGlBox.clientWidth / webGlBox.clientHeight, 1, 2000);
     camera.position.set(300, 905, 300);
     camera.lookAt(scene.position);
 };
@@ -30,8 +34,8 @@ const initRenderer = () => {
     });
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-    renderer.setSize(threeModel.clientWidth, threeModel.clientHeight);
-    threeModel.appendChild(renderer.domElement);
+    renderer.setSize(webGlBox.clientWidth, webGlBox.clientHeight);
+    webGlBox.appendChild(renderer.domElement);
     return renderer;
 };
 
@@ -44,7 +48,7 @@ const initCells = (numberOfCells) => {
     liveCell.castShadow = true;
     liveCell.receiveShadow = true;
     const distance = cellSize * 2 + 1;
-    const correction = -(size * distance) / 2;
+    const correction = -((size - 1) * distance) / 2;
     for (let layer = 0; layer < size; layer++) {
         for (let row = 0; row < size; row++) {
             for (let column = 0; column < size; column++) {
@@ -69,10 +73,11 @@ const initLights = () => {
     scene.add(new THREE.AmbientLight(0xAAAAAA));
 };
 
-const setMoveListeners = () => {
-    threeModel.addEventListener("mousemove", onDocumentMouseMove);
-    threeModel.addEventListener("touchstart", onDocumentTouchStart);
-    threeModel.addEventListener("touchmove", onDocumentTouchMove);
+const setListeners = () => {
+    webGlBox.addEventListener("mousemove", onDocumentMouseMove);
+    webGlBox.addEventListener("touchstart", onDocumentTouchStart);
+    webGlBox.addEventListener("touchmove", onDocumentTouchMove);
+    zoomSlider.addEventListener("change", onZoomChange);
 };
 
 export const destroy = () => {
@@ -97,7 +102,7 @@ export const init = (universe, square) => {
         initRenderer();
         initCamera();
         initLights();
-        setMoveListeners();
+        setListeners();
         sceneSet = true;
     }
     initCells(numberOfCells);
@@ -135,15 +140,18 @@ const getThirdCord = (firstCord, secondCord, currentThirdCord) => {
 
 const render = () => {
     if (moveY !== 0 || moveXZ !== 0) {
-        const newY = bringInRange(camera.position.y - moveY, zoom);
+        const newY = bringInRange(camera.position.y - moveY, zoom - 10);
         const maxX = Math.sqrt(Math.pow(zoom, 2) - Math.pow(newY, 2));
-        let directionChanged = 1;
+        let newX;
+        let newZ;
         if (Math.abs(camera.position.x + moveXZ * directionXZ) > maxX) {
             directionXZ = -1 * directionXZ;
-            directionChanged = -1;
+            newX = camera.position.x > 0 ? maxX - 0.5 : 0.5 - maxX;
+            newZ = -getThirdCord(newX, newY, camera.position.z)
+        } else {
+            newX = bringInRange(camera.position.x + moveXZ * directionXZ, maxX);
+            newZ = getThirdCord(newX, newY, camera.position.z);
         }
-        const newX = bringInRange(camera.position.x + moveXZ * directionXZ, maxX);
-        const newZ = directionChanged * getThirdCord(newX, newY, camera.position.z);
         camera.position.set(newX, newY, newZ);
         camera.lookAt(scene.position);
     }
@@ -165,21 +173,21 @@ export const updateCells = (births, deaths) => {
 };
 
 const inMiddle = (currentX, currentY) => {
-    return currentX > threeHalfX * 0.2
-        && currentX < window.innerWidth - threeHalfX * 0.2
-        && currentY > threeHalfY * 0.2
-        && currentY < window.innerHeight - threeHalfX * 0.2
+    return currentX > boxHalfX * 0.2
+        && currentX < window.innerWidth - boxHalfX * 0.2
+        && currentY > boxHalfY * 0.2
+        && currentY < window.innerHeight - boxHalfX * 0.2
 };
 
 const updateMove = (currentX, currentY) => {
     if (inMiddle(currentX, currentY)) {
-        if (currentX > threeHalfX * 1.2 || currentX < window.innerWidth - threeHalfX * 1.2) {
-            moveXZ = currentX > threeHalfX ? 1 : -1;
+        if (currentX > boxHalfX * 1.2 || currentX < window.innerWidth - boxHalfX * 1.2) {
+            moveXZ = currentX > boxHalfX ? 1 : -1;
         } else {
             moveXZ = 0;
         }
-        if (currentY > threeHalfY * 1.2 || currentY < window.innerHeight - threeHalfY * 1.2) {
-            moveY = currentY > threeHalfY ? 1 : -1;
+        if (currentY > boxHalfY * 1.2 || currentY < window.innerHeight - boxHalfY * 1.2) {
+            moveY = currentY > boxHalfY ? 1 : -1;
         } else {
             moveY = 0;
         }
@@ -209,10 +217,21 @@ const onDocumentTouchMove = (event) => {
 
 const onWindowResize = () => {
     if (size != null) {
-        threeHalfX = threeModel.clientWidth / 2;
-        threeHalfY = threeModel.clientHeight / 2;
-        camera.aspect = threeModel.clientWidth / threeModel.clientHeight;
+        boxHalfX = webGlBox.clientWidth / 2;
+        boxHalfY = webGlBox.clientHeight / 2;
+        camera.aspect = webGlBox.clientWidth / webGlBox.clientHeight;
         camera.updateProjectionMatrix();
-        renderer.setSize(threeModel.clientWidth, threeModel.clientHeight);
+        renderer.setSize(webGlBox.clientWidth, webGlBox.clientHeight);
     }
+};
+
+const onZoomChange = () => {
+    const previousZoom = zoom;
+    const sliderValue = parseInt(zoomSlider.value);
+    zoom = 2000 - sliderValue;
+    const zoomFactor = zoom / previousZoom;
+    zoomDisplay.innerText = (Math.floor(sliderValue / 10));
+    camera.position.x = camera.position.x * zoomFactor;
+    camera.position.y = camera.position.y * zoomFactor;
+    camera.position.z = camera.position.z * zoomFactor;
 };
