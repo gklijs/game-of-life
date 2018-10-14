@@ -9,17 +9,17 @@ let renderer = null;
 let size = null;
 let cellShapes = null;
 let sceneSet = false;
-let parentPaused = null;
 let isSquare = null;
-let moveX = 0;
-let moveZ = 0;
+let moveXZ = 0;
+let directionXZ = 1;
+let moveY = 0;
 let threeHalfX = null;
 let threeHalfY = null;
 const zoom = 1000;
 
 const initCamera = () => {
     camera = new THREE.PerspectiveCamera(50, threeModel.clientWidth / threeModel.clientHeight, 1, 2000);
-    camera.position.set(0, 1000, 0);
+    camera.position.set(300, 905, 300);
     camera.lookAt(scene.position);
 };
 
@@ -57,8 +57,8 @@ const initCells = (numberOfCells) => {
 };
 
 const initLights = () => {
-    const light = new THREE.SpotLight(0xFFFFFF, 1);
-    light.position.set(0, 700, 0);
+    const light = new THREE.SpotLight(0xFFFFFF, 1, 1000);
+    light.position.set(0, 500, 0);
 
     light.target = scene;
     light.castShadow = true;
@@ -87,8 +87,7 @@ export const destroy = () => {
     )
 };
 
-export const init = (universe, isPaused, square) => {
-    parentPaused = isPaused;
+export const init = (universe, square) => {
     isSquare = square;
     threeModel.classList.add("is-visible");
     size = universe.width();
@@ -122,13 +121,29 @@ const bringInRange = (number, range) => {
     return number
 };
 
+const getThirdCord = (firstCord, secondCord, currentThirdCord) => {
+    const roomLeft = Math.pow(zoom, 2) - Math.pow(secondCord, 2) - Math.pow(firstCord, 2);
+    if (roomLeft < 0) {
+        return 0;
+    }
+    if (currentThirdCord > 0) {
+        return Math.sqrt(roomLeft);
+    } else {
+        return -Math.sqrt(roomLeft)
+    }
+};
+
 const render = () => {
-    if (moveX !== 0 || moveZ !== 0) {
-        const newX = bringInRange(camera.position.x + moveX * .005, zoom);
-        const maxZ = Math.sqrt(Math.pow(zoom, 2) - Math.pow(newX, 2));
-        const newZ = bringInRange(camera.position.z + moveZ * .005, maxZ);
-        const newY = Math.sqrt(Math.pow(zoom, 2) - Math.pow(newX, 2) - Math.pow(newZ, 2));
-        console.log("moving camera to x: " + newX + " y: " + newY + " z:" + newZ);
+    if (moveY !== 0 || moveXZ !== 0) {
+        const newY = bringInRange(camera.position.y - moveY, zoom);
+        const maxX = Math.sqrt(Math.pow(zoom, 2) - Math.pow(newY, 2));
+        let directionChanged = 1;
+        if (Math.abs(camera.position.x + moveXZ * directionXZ) > maxX) {
+            directionXZ = -1 * directionXZ;
+            directionChanged = -1;
+        }
+        const newX = bringInRange(camera.position.x + moveXZ * directionXZ, maxX);
+        const newZ = directionChanged * getThirdCord(newX, newY, camera.position.z);
         camera.position.set(newX, newY, newZ);
         camera.lookAt(scene.position);
     }
@@ -158,14 +173,19 @@ const inMiddle = (currentX, currentY) => {
 
 const updateMove = (currentX, currentY) => {
     if (inMiddle(currentX, currentY)) {
-        moveX = currentX > threeHalfX ? 2 * threeHalfX - currentX : currentX - 2 * threeHalfX;
-        moveZ = currentY > threeHalfY ? 2 * threeHalfY - currentY : currentY - 2 * threeHalfY;
-        if (parentPaused()) {
-            render()
+        if (currentX > threeHalfX * 1.2 || currentX < window.innerWidth - threeHalfX * 1.2) {
+            moveXZ = currentX > threeHalfX ? 1 : -1;
+        } else {
+            moveXZ = 0;
+        }
+        if (currentY > threeHalfY * 1.2 || currentY < window.innerHeight - threeHalfY * 1.2) {
+            moveY = currentY > threeHalfY ? 1 : -1;
+        } else {
+            moveY = 0;
         }
     } else {
-        moveX = 0;
-        moveZ = 0;
+        moveXZ = 0;
+        moveY = 0;
     }
 };
 
@@ -194,8 +214,5 @@ const onWindowResize = () => {
         camera.aspect = threeModel.clientWidth / threeModel.clientHeight;
         camera.updateProjectionMatrix();
         renderer.setSize(threeModel.clientWidth, threeModel.clientHeight);
-        if (parentPaused) {
-            render()
-        }
     }
 };

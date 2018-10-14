@@ -25,7 +25,7 @@ export const setEventHandlers = () => {
     }
 };
 
-export const init = (newUniverse, isPaused, square) => {
+export const init = (newUniverse, square) => {
     isSquare = square;
     twoModel.classList.add("is-visible");
     size = newUniverse.width();
