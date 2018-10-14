@@ -22,15 +22,14 @@ const stopButton = document.getElementById("stop-button");
 const modelButton = document.getElementById("model-button");
 const figureButton = document.getElementById("figure-button");
 
-let animationId = null;
+let paused = true;
 let ticks = 1;
 let totalSteps = 0;
 
-const isPaused = () => {
-    return animationId === null;
-};
-
 const updateCells = () => {
+    if(universe == null){
+        return;
+    }
     universe.update_changes();
     const births = utils.getArrayFromMemory(universe.births(), universe.nr_of_births());
     const deaths = utils.getArrayFromMemory(universe.deaths(), universe.nr_of_deaths());
@@ -43,27 +42,15 @@ const updateCells = () => {
 };
 
 const renderLoop = () => {
-    for (let i = 0; i < ticks; i++) {
-        universe.tick();
-        totalSteps++;
+    if(!paused && universe!= null){
+        for (let i = 0; i < ticks; i++) {
+            universe.tick();
+            totalSteps++;
+            stepCounter.textContent = totalSteps;
+        }
     }
     updateCells();
-    stepCounter.textContent = totalSteps;
-    animationId = requestAnimationFrame(renderLoop);
-};
-
-const play = () => {
-    playPauseButton.textContent = "⏸";
-    if (universe === null) {
-        reset(true);
-    }
-    renderLoop();
-};
-
-const pause = () => {
-    playPauseButton.textContent = "▶️";
-    cancelAnimationFrame(animationId);
-    animationId = null;
+    requestAnimationFrame(renderLoop);
 };
 
 const reset = (random) => {
@@ -76,17 +63,19 @@ const reset = (random) => {
     totalSteps = 0;
     stepCounter.textContent = totalSteps;
     if (twoModelShown){
-        twoModel.init(universe, isPaused, isSquare);
+        twoModel.init(universe, isSquare);
     }else{
-        threeModel.init(universe, isPaused, isSquare);
+        threeModel.init(universe, isSquare);
     }
 };
 
 playPauseButton.addEventListener("click", event => {
-    if (isPaused()) {
-        play();
+    if (paused) {
+        playPauseButton.textContent = "⏸";
+        paused = false;
     } else {
-        pause();
+        playPauseButton.textContent = "▶️";
+        paused = true;
     }
 });
 
@@ -104,7 +93,8 @@ resetButton.addEventListener("click", event => {
 });
 
 stopButton.addEventListener("click", event => {
-    pause();
+    playPauseButton.textContent = "▶️";
+    paused = true;
     reset(false);
 });
 
@@ -114,12 +104,12 @@ modelButton.addEventListener("click", event => {
     }
     if (twoModelShown){
         twoModel.destroy();
-        threeModel.init(universe, isPaused, isSquare);
+        threeModel.init(universe, isSquare);
         twoModelShown = false;
         modelButton.innerText = "3D"
     }else{
         threeModel.destroy();
-        twoModel.init(universe, isPaused, isSquare);
+        twoModel.init(universe, isSquare);
         twoModelShown = true;
         modelButton.innerText = "2D"
     }
@@ -137,9 +127,11 @@ figureButton.addEventListener("click", event => {
     isSquare = !isSquare;
     if (twoModelShown){
         twoModel.destroy();
-        twoModel.init(universe, isPaused, isSquare);
+        twoModel.init(universe, isSquare);
     }else{
         threeModel.destroy();
-        threeModel.init(universe, isPaused, isSquare);
+        threeModel.init(universe, isSquare);
     }
 });
+
+renderLoop();

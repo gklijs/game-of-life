@@ -9,17 +9,6 @@ use wasm_bindgen::prelude::*;
 use fixedbitset::FixedBitSet;
 
 #[wasm_bindgen]
-extern "C" {
-    #[wasm_bindgen(js_namespace = console)]
-    fn log(msg: &str);
-}
-
-// A macro to provide `println!(..)`-style syntax for `console.log` logging.
-macro_rules! log {
-    ($($t:tt)*) => (log(&format!($($t)*)))
-}
-
-#[wasm_bindgen]
 pub struct Universe {
     width: u32,
     height: u32,
@@ -83,29 +72,29 @@ fn live_neighbor_count(
     let qse = get_index(east, south, up, width, height);
     count += current[qse] as u8;
 
-    let u = get_index(column, row, up, width, height);
-    count += current[u] as u8;
+    let upp = get_index(column, row, up, width, height);
+    count += current[upp] as u8;
 
     let nw = get_index(west, north, layer, width, height);
     count += current[nw] as u8;
 
-    let n = get_index(column, north, layer, width, height);
-    count += current[n] as u8;
+    let no = get_index(column, north, layer, width, height);
+    count += current[no] as u8;
 
     let ne = get_index(east, north, layer, width, height);
     count += current[ne] as u8;
 
-    let w = get_index(west, row, layer, width, height);
-    count += current[w] as u8;
+    let we = get_index(west, row, layer, width, height);
+    count += current[we] as u8;
 
-    let e = get_index(east, row, layer, width, height);
-    count += current[e] as u8;
+    let ea = get_index(east, row, layer, width, height);
+    count += current[ea] as u8;
 
     let sw = get_index(west, south, layer, width, height);
     count += current[sw] as u8;
 
-    let s = get_index(column, south, layer, width, height);
-    count += current[s] as u8;
+    let so = get_index(column, south, layer, width, height);
+    count += current[so] as u8;
 
     let se = get_index(east, south, layer, width, height);
     count += current[se] as u8;
@@ -134,8 +123,8 @@ fn live_neighbor_count(
     let dse = get_index(east, south, down, width, height);
     count += current[dse] as u8;
 
-    let d = get_index(column, row, down, width, height);
-    count += current[d] as u8;
+    let dow = get_index(column, row, down, width, height);
+    count += current[dow] as u8;
 
     count
 }
