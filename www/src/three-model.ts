@@ -1,10 +1,12 @@
 import * as THREE from "three";
 
-const utils = require("./utils");
+import {Utils} from "./utils";
+import {Model} from "./types";
+import {Universe} from "game-of-life-3d";
 
 const threeModel = document.getElementById("three-model");
 const webGlBox = document.getElementById("web-gl-box");
-const zoomSlider = document.getElementById("zoom-slider");
+const zoomSlider: HTMLInputElement = <HTMLInputElement>document.getElementById("zoom-slider");
 const zoomDisplay = document.getElementById("zoom-display");
 
 let scene = null;
@@ -54,7 +56,7 @@ const initCells = (numberOfCells) => {
             for (let column = 0; column < size; column++) {
                 const cell = liveCell.clone();
                 cell.position.set(correction + column * distance, correction + layer * distance, correction + row * distance);
-                cellShapes[utils.getIndex(column, row, layer, size)] = cell;
+                cellShapes[Utils.getIndex(column, row, layer, size)] = cell;
             }
         }
     }
@@ -78,42 +80,6 @@ const setListeners = () => {
     webGlBox.addEventListener("touchstart", onDocumentTouchStart);
     webGlBox.addEventListener("touchmove", onDocumentTouchMove);
     zoomSlider.addEventListener("change", onZoomChange);
-};
-
-export const destroy = () => {
-    threeModel.classList.remove("is-visible");
-    window.removeEventListener("resize", onWindowResize);
-    size = null;
-    cellShapes.forEach(
-        cell => {
-            scene.remove(cell);
-            cell.geometry.dispose();
-        }
-    )
-};
-
-export const init = (universe, square) => {
-    isSquare = square;
-    threeModel.classList.add("is-visible");
-    size = universe.width();
-    const numberOfCells = Math.pow(size, 3);
-    if (!sceneSet) {
-        scene = new THREE.Scene();
-        initRenderer();
-        initCamera();
-        initLights();
-        setListeners();
-        sceneSet = true;
-    }
-    initCells(numberOfCells);
-    const cells = utils.getCellsFromUniverse(universe);
-    for (let idx = 0; idx < numberOfCells; idx++) {
-        if (utils.isCellAlive(idx, cells)) {
-            scene.add(cellShapes[idx])
-        }
-    }
-    onWindowResize();
-    window.addEventListener("resize", onWindowResize);
 };
 
 const bringInRange = (number, range) => {
@@ -156,20 +122,6 @@ const render = () => {
         camera.lookAt(scene.position);
     }
     renderer.render(scene, camera);
-};
-
-export const updateCells = (births, deaths) => {
-    births.forEach(
-        idx => {
-            scene.add(cellShapes[idx]);
-        }
-    );
-    deaths.forEach(
-        idx => {
-            scene.remove(cellShapes[idx]);
-        }
-    );
-    render()
 };
 
 const inMiddle = (currentX, currentY) => {
@@ -230,8 +182,61 @@ const onZoomChange = () => {
     const sliderValue = parseInt(zoomSlider.value);
     zoom = 2000 - sliderValue;
     const zoomFactor = zoom / previousZoom;
-    zoomDisplay.innerText = (Math.floor(sliderValue / 10));
+    zoomDisplay.innerText = String((Math.floor(sliderValue / 10)));
     camera.position.x = camera.position.x * zoomFactor;
     camera.position.y = camera.position.y * zoomFactor;
     camera.position.z = camera.position.z * zoomFactor;
 };
+
+export class ThreeModel implements Model {
+    public init(universe: Universe, square: boolean): void {
+        isSquare = square;
+        threeModel.classList.add("is-visible");
+        size = universe.width();
+        const numberOfCells = Math.pow(size, 3);
+        if (!sceneSet) {
+            scene = new THREE.Scene();
+            initRenderer();
+            initCamera();
+            initLights();
+            setListeners();
+            sceneSet = true;
+        }
+        initCells(numberOfCells);
+        const cells = Utils.getCellsFromUniverse(universe);
+        for (let idx = 0; idx < numberOfCells; idx++) {
+            if (Utils.isCellAlive(idx, cells)) {
+                scene.add(cellShapes[idx])
+            }
+        }
+        onWindowResize();
+        window.addEventListener("resize", onWindowResize);
+    }
+
+
+    public updateCells(births: Uint32Array, deaths: Uint32Array): void {
+        births.forEach(
+            idx => {
+                scene.add(cellShapes[idx]);
+            }
+        );
+        deaths.forEach(
+            idx => {
+                scene.remove(cellShapes[idx]);
+            }
+        );
+        render()
+    }
+
+    public destroy(): void {
+        threeModel.classList.remove("is-visible");
+        window.removeEventListener("resize", onWindowResize);
+        size = null;
+        cellShapes.forEach(
+            cell => {
+                scene.remove(cell);
+                cell.geometry.dispose();
+            }
+        )
+    }
+}

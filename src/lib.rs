@@ -138,6 +138,11 @@ extern "C" {
     fn timeEnd(name: &str);
 }
 
+#[wasm_bindgen]
+pub fn get_memory() -> JsValue {
+    return wasm_bindgen::memory();
+}
+
 pub struct Timer<'a> {
     name: &'a str,
 }
