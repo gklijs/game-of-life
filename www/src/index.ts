@@ -1,21 +1,19 @@
 import {Universe} from "game-of-life-3d";
 
-const utils = require("./utils");
-const threeModel = require("./three-model")
-const twoModel = require("./two-model")
+import {Utils} from "./utils";
+import {Model} from "./types";
+import {ThreeModel} from "./three-model";
+import {TwoModel} from "./two-model";
 
-const GRID_COLOR = "#000000";
-const DEAD_COLOR = "#FFFF00";
-const ALIVE_COLOR = "#FF0000";
-
-let universe = null;
-let size = 10;
-let twoModelShown = true;
-let isSquare = true;
+let universe: Universe = null;
+let size: number = 10;
+let twoModelSelected: boolean = true;
+let model: Model = null;
+let isSquare: boolean = true;
 
 const playPauseButton = document.getElementById("play-pause");
-const speedSlider = document.getElementById("speed-slider");
-const sizeSlider = document.getElementById("size-slider");
+const speedSlider: HTMLInputElement = <HTMLInputElement>document.getElementById("speed-slider");
+const sizeSlider: HTMLInputElement = <HTMLInputElement>document.getElementById("size-slider");
 const stepCounter = document.getElementById("step-counter");
 const resetButton = document.getElementById("reset-button");
 const stopButton = document.getElementById("stop-button");
@@ -33,14 +31,10 @@ const updateCells = () => {
         return;
     }
     universe.update_changes();
-    const births = utils.getArrayFromMemory(universe.births(), universe.nr_of_births());
-    const deaths = utils.getArrayFromMemory(universe.deaths(), universe.nr_of_deaths());
+    const births = Utils.getArrayFromMemory(universe.births(), universe.nr_of_births());
+    const deaths = Utils.getArrayFromMemory(universe.deaths(), universe.nr_of_deaths());
 
-    if (twoModelShown){
-        twoModel.updateCells(births, deaths);
-    }else{
-        threeModel.updateCells(births, deaths);
-    }
+    model.updateCells(births, deaths);
 };
 
 const renderLoop = () => {
@@ -50,7 +44,7 @@ const renderLoop = () => {
                 universe.tick();
                 totalSteps++;
             }
-            stepCounter.textContent = totalSteps;
+            stepCounter.textContent = String(totalSteps);
         }
         totalRenders++;
     }
@@ -59,19 +53,16 @@ const renderLoop = () => {
 };
 
 const reset = (random) => {
-    if (twoModelShown){
-        twoModel.destroy();
-    }else{
-        threeModel.destroy();
+    if (model != null) {
+        model.destroy()
+    }
+    if (universe !== null) {
+        universe.free();
     }
     universe = Universe.new(size, size, size, random);
     totalSteps = 0;
-    stepCounter.textContent = totalSteps;
-    if (twoModelShown){
-        twoModel.init(universe, isSquare);
-    }else{
-        threeModel.init(universe, isSquare);
-    }
+    stepCounter.textContent = String(totalSteps);
+    model.init(universe, isSquare);
 };
 
 playPauseButton.addEventListener("click", event => {
@@ -114,15 +105,17 @@ modelButton.addEventListener("click", event => {
     if(universe === null){
         universe = Universe.new(size, size, size, true);
     }
-    if (twoModelShown){
-        twoModel.destroy();
-        threeModel.init(universe, isSquare);
-        twoModelShown = false;
+    if (twoModelSelected) {
+        model.destroy();
+        model = new ThreeModel;
+        model.init(universe, isSquare);
+        twoModelSelected = false;
         modelButton.innerText = "3D"
     }else{
-        threeModel.destroy();
-        twoModel.init(universe, isSquare);
-        twoModelShown = true;
+        model.destroy();
+        model = new TwoModel;
+        model.init(universe, isSquare);
+        twoModelSelected = true;
         modelButton.innerText = "2D"
     }
 });
@@ -137,13 +130,8 @@ figureButton.addEventListener("click", event => {
         figureButton.innerText = "🔲️"
     }
     isSquare = !isSquare;
-    if (twoModelShown){
-        twoModel.destroy();
-        twoModel.init(universe, isSquare);
-    }else{
-        threeModel.destroy();
-        threeModel.init(universe, isSquare);
-    }
+    model.destroy();
+    model.init(universe, isSquare);
 });
 
 renderLoop();

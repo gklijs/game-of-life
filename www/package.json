@@ -2,7 +2,7 @@
   "name": "create-wasm-app",
   "version": "0.1.0",
   "description": "create an app to consume rust-generated wasm packages",
-  "main": "index.js",
+  "main": "src/index.js",
   "bin": {
     "create-wasm-app": ".bin/create-wasm-app.js"
   },
@@ -30,13 +30,17 @@
   "devDependencies": {
     "copy-webpack-plugin": "^4.5.2",
     "generate-release": "^1.1.1",
-    "hello-wasm-pack": "^0.1.0",
     "webpack": "^4.16.3",
     "webpack-cli": "^3.1.0",
     "webpack-dev-server": "^3.1.5"
   },
   "dependencies": {
+    "awesome-typescript-loader": "^5.2.1",
+    "babel": "^6.23.0",
+    "game-of-life-3d": "latest",
     "serve-static": "^1.13.2",
-    "three": "^0.97.0"
+    "source-map-loader": "^0.2.4",
+    "three": "^0.97.0",
+    "typescript": "^2.7.2"
   }
 }
