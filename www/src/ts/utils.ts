@@ -1,4 +1,4 @@
-import {Universe, get_memory} from "game-of-life-3d";
+import {Universe} from "game-of-life-3d";
 
 const isBitSet = (number, bitPosition) => {
     return (number & (1 << bitPosition)) !== 0;
@@ -12,7 +12,7 @@ export namespace Utils {
     export const getCellsFromUniverse = (universe: Universe) => {
         const cellsPtr = universe.cells();
         universe.update_changes();
-        return new Uint32Array(get_memory().buffer, cellsPtr, Math.ceil(Math.pow(universe.width(), 3) / 32))
+        return new Uint32Array(Universe.getMemory().buffer, cellsPtr, Math.ceil(Math.pow(universe.width(), 3) / 32))
     };
 
     export const isCellAlive = (idx, cells) => {
@@ -22,6 +22,6 @@ export namespace Utils {
     };
 
     export const getArrayFromMemory = (pointer, size) => {
-        return new Uint32Array(get_memory().buffer, pointer, size);
+        return new Uint32Array(Universe.getMemory().buffer, pointer, size);
     };
 }

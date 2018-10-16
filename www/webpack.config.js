@@ -1,25 +1,31 @@
-const CopyWebpackPlugin = require("copy-webpack-plugin");
 const path = require('path');
+const CopyWebpackPlugin = require("copy-webpack-plugin");
 
 module.exports = {
-    entry: "./src/bootstrap.js",
+    entry: "./src/js/bootstrap.js",
     output: {
-        path: path.resolve(__dirname, "dist"),
-        filename: "bootstrap.js",
+        path: path.resolve(__dirname, 'dist'),
+        filename: 'js/[name].bundle.js',
     },
-    devtool: "source-map",
     resolve: {
-        // Add '.ts' and '.tsx' as resolvable extensions.
-        extensions: [".webpack.js", ".web.js", ".ts", ".tsx", ".js"]
+        extensions: [".tsx", ".ts", ".js"],
     },
-    mode: "development",
+    devtool: 'source-map',
     plugins: [
-        new CopyWebpackPlugin(['index.html'])
+        new CopyWebpackPlugin(['src/index.html'])
     ],
     module: {
         rules: [
-            {test: /\.js$/, loader: "source-map-loader", enforce: "pre"},
-            {test: /\.tsx?$/, loader: "awesome-typescript-loader"}
+            {
+                test: /\.tsx?$/,
+                loader: 'ts-loader',
+                exclude: /node_modules/,
+            },
+            {
+                test: /\.js$/,
+                loader: "source-map-loader",
+                enforce: "pre",
+            }
         ]
-    },
+    }
 };

@@ -1,16 +1,21 @@
 {
   "compilerOptions": {
-    "outDir": "./built",
+    "baseUrl": "",
+    "paths": {
+      "game-of-life-3d": [
+        "node_modules/game-of-life-3d"
+      ]
+    },
+    "allowSyntheticDefaultImports": true,
+    "outDir": "./build/",
     "allowJs": true,
-    "target": "es2015",
-    "module": "es2015",
+    "target": "es5",
     "moduleResolution": "node",
+    "module": "commonjs",
+    "sourceMap": true,
     "lib": [
-      "es2017",
+      "es5",
       "dom"
     ]
-  },
-  "include": [
-    "./src/**/*"
-  ]
+  }
 }
