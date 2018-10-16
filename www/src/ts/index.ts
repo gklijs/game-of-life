@@ -1,9 +1,8 @@
-import {Universe} from "game-of-life-3d";
-
 import {Utils} from "./utils";
 import {Model} from "./types";
 import {ThreeModel} from "./three-model";
 import {TwoModel} from "./two-model";
+import {Universe} from "game-of-life-3d";
 
 let universe: Universe = null;
 let size: number = 10;
@@ -39,7 +38,7 @@ const updateCells = () => {
 
 const renderLoop = () => {
     if(!paused && universe!= null){
-        if(totalRenders % skipRenders == 0){
+        if (totalRenders % skipRenders === 0) {
             for (let i = 0; i < ticksPerRender; i++) {
                 universe.tick();
                 totalSteps++;

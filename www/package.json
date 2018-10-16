@@ -1,46 +1,29 @@
 {
-  "name": "create-wasm-app",
+  "name": "game-of-life-app",
   "version": "0.1.0",
-  "description": "create an app to consume rust-generated wasm packages",
-  "main": "src/index.js",
-  "bin": {
-    "create-wasm-app": ".bin/create-wasm-app.js"
-  },
+  "description": "game of life implementation in typescript using wasm",
+  "main": "dist/bootstrap.js",
   "scripts": {
-    "build": "webpack --config webpack.config.js",
-    "start": "webpack-dev-server",
-    "release": "generate-release"
+    "build": "webpack --config webpack.config.js --mode development",
+    "start": "webpack-dev-server --mode development"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/rustwasm/create-wasm-app.git"
-  },
-  "keywords": [
-    "webassembly",
-    "wasm",
-    "rust",
-    "webpack"
-  ],
-  "author": "Ashley Williams <ashley666ashley@gmail.com>",
+  "author": "Gerard Klijs <g.klijs@gmail.com>",
   "license": "(MIT OR Apache-2.0)",
-  "bugs": {
-    "url": "https://github.com/rustwasm/create-wasm-app/issues"
-  },
-  "homepage": "https://github.com/rustwasm/create-wasm-app#readme",
   "devDependencies": {
+    "@types/lodash": "^4.14.117",
+    "@types/three": "^0.93.3",
+    "@types/webpack": "^4.4.16",
     "copy-webpack-plugin": "^4.5.2",
     "generate-release": "^1.1.1",
-    "webpack": "^4.16.3",
-    "webpack-cli": "^3.1.0",
+    "serve-static": "^1.13.2",
+    "source-map-loader": "^0.2.4",
+    "ts-loader": "^5.2.2",
+    "typescript": "^2.9.2",
+    "webpack": "^4.20.2",
+    "webpack-cli": "^3.1.2",
     "webpack-dev-server": "^3.1.5"
   },
   "dependencies": {
-    "awesome-typescript-loader": "^5.2.1",
-    "babel": "^6.23.0",
-    "game-of-life-3d": "latest",
-    "serve-static": "^1.13.2",
-    "source-map-loader": "^0.2.4",
-    "three": "^0.97.0",
-    "typescript": "^2.7.2"
+    "three": "^0.97.0"
   }
 }
