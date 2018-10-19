@@ -1,21 +1,21 @@
 import {Model} from "./types";
 import {Universe, Utils} from "game-of-life-3d";
 
-const twoModel = document.getElementById("two-model");
+const twoModel: HTMLElement = document.getElementById("two-model")!;
 const canvas: HTMLCanvasElement = <HTMLCanvasElement>document.getElementById("canvas");
-const ctx = canvas.getContext('2d');
+const ctx: CanvasRenderingContext2D = canvas.getContext('2d')!;
 const layerSlider: HTMLInputElement = <HTMLInputElement>document.getElementById("layer-slider");
-const layerDisplay = document.getElementById("layer-display");
+const layerDisplay: HTMLElement = document.getElementById("layer-display")!;
 
 const GRID_COLOR = "#000000";
 const DEAD_COLOR = "#FFFFFF";
 const ALIVE_COLOR = "#FF0000";
 
-let universeReference = null;
-let size = null;
-let cellSize = null;
-let isSquare = null;
-let layer = 0;
+let universeReference: Universe | null = null;
+let size: number = 10;
+let cellSize: number = 5;
+let isSquare: boolean = true;
+let layer: number = 0;
 let eventHandlersSet = false;
 
 const setEventHandlers = () => {
@@ -52,7 +52,7 @@ const drawFromUniverse = () => {
     }
 };
 
-const drawSquare = (col, row) => {
+const drawSquare = (col: number, row: number) => {
     ctx.fillRect(
         col * (cellSize + 1) + 1,
         row * (cellSize + 1) + 1,
@@ -61,7 +61,7 @@ const drawSquare = (col, row) => {
     );
 };
 
-const drawCircle = (col, row) => {
+const drawCircle = (col: number, row: number) => {
     ctx.beginPath();
     ctx.arc(
         col * (cellSize + 1) + 1 + cellSize / 2,
@@ -72,7 +72,7 @@ const drawCircle = (col, row) => {
     ctx.fill()
 };
 
-const drawAllCellsInLayer = (cells) => {
+const drawAllCellsInLayer = (cells: Uint32Array) => {
     ctx.fillStyle = ALIVE_COLOR;
 
     for (let col = 0; col < size; col++) {
@@ -102,20 +102,18 @@ const drawAllCellsInLayer = (cells) => {
 };
 
 const onWindowResize = () => {
-    if (size != null) {
-        const maxCanvasWidth = twoModel.clientWidth - 11;
-        const maxCanvasHeight = twoModel.clientHeight - 31;
-        const maxCellSizeWidth = Math.floor(maxCanvasWidth / size) - 1;
-        const maxCellSizeHeight = Math.floor(maxCanvasHeight / size) - 1;
-        cellSize = Math.min(maxCellSizeWidth, maxCellSizeHeight);
-        canvas.width = (cellSize + 1) * size + 1;
-        canvas.height = (cellSize + 1) * size + 1;
-        drawGrid();
-        drawFromUniverse();
-    }
+    const maxCanvasWidth = twoModel.clientWidth - 11;
+    const maxCanvasHeight = twoModel.clientHeight - 31;
+    const maxCellSizeWidth = Math.floor(maxCanvasWidth / size) - 1;
+    const maxCellSizeHeight = Math.floor(maxCanvasHeight / size) - 1;
+    cellSize = Math.min(maxCellSizeWidth, maxCellSizeHeight);
+    canvas.width = (cellSize + 1) * size + 1;
+    canvas.height = (cellSize + 1) * size + 1;
+    drawGrid();
+    drawFromUniverse();
 };
 
-const editUniverse = (event) => {
+const editUniverse = (event: MouseEvent) => {
     if (universeReference === null) {
         return;
     }
@@ -193,7 +191,6 @@ export class TwoModel implements Model {
     public destroy(): void {
         twoModel.classList.remove("is-visible");
         window.removeEventListener("resize", onWindowResize);
-        size = null;
         universeReference = null;
     }
 }
