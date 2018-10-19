@@ -1,8 +1,7 @@
 import * as THREE from "three";
 
-import {Utils} from "./utils";
 import {Model} from "./types";
-import {Universe} from "game-of-life-3d";
+import {Universe, Utils} from "game-of-life-3d";
 
 const threeModel = document.getElementById("three-model");
 const webGlBox = document.getElementById("web-gl-box");
@@ -56,7 +55,7 @@ const initCells = (numberOfCells) => {
             for (let column = 0; column < size; column++) {
                 const cell = liveCell.clone();
                 cell.position.set(correction + column * distance, correction + layer * distance, correction + row * distance);
-                cellShapes[Utils.getIndex(column, row, layer, size)] = cell;
+                cellShapes[Utils.getIndex(column, row, layer, size, size)] = cell;
             }
         }
     }

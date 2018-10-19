@@ -1,6 +1,5 @@
-import {Utils} from "./utils";
 import {Model} from "./types";
-import {Universe} from "game-of-life-3d";
+import {Universe, Utils} from "game-of-life-3d";
 
 const twoModel = document.getElementById("two-model");
 const canvas: HTMLCanvasElement = <HTMLCanvasElement>document.getElementById("canvas");
@@ -78,7 +77,7 @@ const drawAllCellsInLayer = (cells) => {
 
     for (let col = 0; col < size; col++) {
         for (let row = 0; row < size; row++) {
-            const idx = Utils.getIndex(col, row, layer, size);
+            const idx = Utils.getIndex(col, row, layer, size, size);
             if (!Utils.isCellAlive(idx, cells)) {
                 continue;
             }
@@ -93,7 +92,7 @@ const drawAllCellsInLayer = (cells) => {
     ctx.fillStyle = DEAD_COLOR;
     for (let col = 0; col < size; col++) {
         for (let row = 0; row < size; row++) {
-            const idx = Utils.getIndex(col, row, layer, size);
+            const idx = Utils.getIndex(col, row, layer, size, size);
             if (Utils.isCellAlive(idx, cells)) {
                 continue;
             }

@@ -6,16 +6,18 @@
         "node_modules/game-of-life-3d"
       ]
     },
-    "allowSyntheticDefaultImports": true,
     "outDir": "./build/",
     "allowJs": true,
-    "target": "es5",
+    "target": "es6",
     "moduleResolution": "node",
     "module": "commonjs",
     "sourceMap": true,
     "lib": [
-      "es5",
+      "es6",
       "dom"
     ]
-  }
+  },
+  "include": [
+    "./src/ts/index.ts"
+  ]
 }

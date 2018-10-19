@@ -5,10 +5,10 @@ module.exports = {
     entry: "./src/js/bootstrap.js",
     output: {
         path: path.resolve(__dirname, 'dist'),
-        filename: 'js/[name].bundle.js',
+        filename: 'js/[name].bundle.js'
     },
     resolve: {
-        extensions: [".tsx", ".ts", ".js"],
+        extensions: [".tsx", ".ts", ".js", ".wasm"]
     },
     devtool: 'source-map',
     plugins: [
@@ -19,12 +19,12 @@ module.exports = {
             {
                 test: /\.tsx?$/,
                 loader: 'ts-loader',
-                exclude: /node_modules/,
+                exclude: /node_modules/
             },
             {
                 test: /\.js$/,
                 loader: "source-map-loader",
-                enforce: "pre",
+                enforce: "pre"
             }
         ]
     }
