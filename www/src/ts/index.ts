@@ -3,20 +3,20 @@ import {ThreeModel} from "./three-model";
 import {TwoModel} from "./two-model";
 import {Universe, Utils} from "game-of-life-3d";
 
-let universe: Universe = null;
+let universe: Universe | null = null;
 let size: number = 10;
 let twoModelSelected: boolean = true;
 let model: Model = new TwoModel;
 let isSquare: boolean = true;
 
-const playPauseButton = document.getElementById("play-pause");
+const playPauseButton: HTMLElement = document.getElementById("play-pause")!;
 const speedSlider: HTMLInputElement = <HTMLInputElement>document.getElementById("speed-slider");
 const sizeSlider: HTMLInputElement = <HTMLInputElement>document.getElementById("size-slider");
-const stepCounter = document.getElementById("step-counter");
-const resetButton = document.getElementById("reset-button");
-const stopButton = document.getElementById("stop-button");
-const modelButton = document.getElementById("model-button");
-const figureButton = document.getElementById("figure-button");
+const stepCounter: HTMLElement = document.getElementById("step-counter")!;
+const resetButton: HTMLElement = document.getElementById("reset-button")!;
+const stopButton: HTMLElement = document.getElementById("stop-button")!;
+const modelButton: HTMLElement = document.getElementById("model-button")!;
+const figureButton: HTMLElement = document.getElementById("figure-button")!;
 
 let paused = true;
 let ticksPerRender = 1;
@@ -50,10 +50,8 @@ const renderLoop = () => {
     requestAnimationFrame(renderLoop);
 };
 
-const reset = (random) => {
-    if (model != null) {
-        model.destroy()
-    }
+const reset = (random: boolean) => {
+    model.destroy();
     if (universe !== null) {
         universe.free();
     }

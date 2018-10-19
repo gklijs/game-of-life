@@ -2,24 +2,24 @@ import * as THREE from "three";
 
 import {Model} from "./types";
 import {Universe, Utils} from "game-of-life-3d";
+import {Mesh, PerspectiveCamera, Scene, WebGLRenderer} from "three";
 
-const threeModel = document.getElementById("three-model");
-const webGlBox = document.getElementById("web-gl-box");
+const threeModel: HTMLElement = document.getElementById("three-model")!;
+const webGlBox: HTMLElement = document.getElementById("web-gl-box")!;
 const zoomSlider: HTMLInputElement = <HTMLInputElement>document.getElementById("zoom-slider");
-const zoomDisplay = document.getElementById("zoom-display");
+const zoomDisplay: HTMLElement= document.getElementById("zoom-display")!;
 
-let scene = null;
-let camera = null;
-let renderer = null;
-let size = null;
-let cellShapes = null;
-let sceneSet = false;
-let isSquare = null;
-let moveXZ = 0;
-let directionXZ = 1;
-let moveY = 0;
-let boxHalfX = null;
-let boxHalfY = null;
+let scene: Scene = new THREE.Scene();
+let camera: PerspectiveCamera | null = null;
+let renderer: WebGLRenderer | null = null;
+let size: number = 5;
+let cellShapes: Array<Mesh> = [];
+let isSquare: boolean = true;
+let moveXZ: number = 0;
+let directionXZ: number = 1;
+let moveY: number = 0;
+let boxHalfX: number = 500;
+let boxHalfY: number = 500;
 let zoom = 1000;
 
 const initCamera = () => {
@@ -40,7 +40,7 @@ const initRenderer = () => {
     return renderer;
 };
 
-const initCells = (numberOfCells) => {
+const initCells = (numberOfCells: number) => {
     const cellSize = Math.floor(200 / size);
     cellShapes = new Array(numberOfCells);
     const geometry = isSquare ? new THREE.BoxBufferGeometry(cellSize * 2, cellSize * 2, cellSize * 2) : new THREE.SphereBufferGeometry(cellSize, 32, 32);
@@ -64,12 +64,9 @@ const initCells = (numberOfCells) => {
 const initLights = () => {
     const light = new THREE.SpotLight(0xFFFFFF, 1, 1000);
     light.position.set(0, 500, 0);
-
-    light.target = scene;
     light.castShadow = true;
     light.receiveShadow = true;
     light.shadow.camera.near = 0.5;
-
     scene.add(light);
     scene.add(new THREE.AmbientLight(0xAAAAAA));
 };
@@ -81,7 +78,7 @@ const setListeners = () => {
     zoomSlider.addEventListener("change", onZoomChange);
 };
 
-const bringInRange = (number, range) => {
+const bringInRange = (number: number, range: number) => {
     if (number > range) {
         return range;
     }
@@ -91,7 +88,7 @@ const bringInRange = (number, range) => {
     return number
 };
 
-const getThirdCord = (firstCord, secondCord, currentThirdCord) => {
+const getThirdCord = (firstCord: number, secondCord: number, currentThirdCord: number) => {
     const roomLeft = Math.pow(zoom, 2) - Math.pow(secondCord, 2) - Math.pow(firstCord, 2);
     if (roomLeft < 0) {
         return 0;
@@ -104,6 +101,9 @@ const getThirdCord = (firstCord, secondCord, currentThirdCord) => {
 };
 
 const render = () => {
+    if(camera === null || renderer === null){
+        return;
+    }
     if (moveY !== 0 || moveXZ !== 0) {
         const newY = bringInRange(camera.position.y - moveY, zoom - 10);
         const maxX = Math.sqrt(Math.pow(zoom, 2) - Math.pow(newY, 2));
@@ -123,14 +123,14 @@ const render = () => {
     renderer.render(scene, camera);
 };
 
-const inMiddle = (currentX, currentY) => {
+const inMiddle = (currentX: number, currentY: number) => {
     return currentX > boxHalfX * 0.2
         && currentX < window.innerWidth - boxHalfX * 0.2
         && currentY > boxHalfY * 0.2
         && currentY < window.innerHeight - boxHalfX * 0.2
 };
 
-const updateMove = (currentX, currentY) => {
+const updateMove = (currentX: number, currentY: number) => {
     if (inMiddle(currentX, currentY)) {
         if (currentX > boxHalfX * 1.2 || currentX < window.innerWidth - boxHalfX * 1.2) {
             moveXZ = currentX > boxHalfX ? 1 : -1;
@@ -148,18 +148,18 @@ const updateMove = (currentX, currentY) => {
     }
 };
 
-const onDocumentMouseMove = (event) => {
+const onDocumentMouseMove = (event: MouseEvent) => {
     updateMove(event.offsetX, event.offsetY);
 };
 
-const onDocumentTouchStart = (event) => {
+const onDocumentTouchStart = (event: TouchEvent) => {
     if (event.touches.length > 1) {
         event.preventDefault();
         updateMove(event.touches[0].clientX, event.touches[0].clientY);
     }
 };
 
-const onDocumentTouchMove = (event) => {
+const onDocumentTouchMove = (event: TouchEvent) => {
     if (event.touches.length === 1) {
         event.preventDefault();
         updateMove(event.touches[0].clientX, event.touches[0].clientY);
@@ -167,16 +167,20 @@ const onDocumentTouchMove = (event) => {
 };
 
 const onWindowResize = () => {
-    if (size != null) {
-        boxHalfX = webGlBox.clientWidth / 2;
-        boxHalfY = webGlBox.clientHeight / 2;
-        camera.aspect = webGlBox.clientWidth / webGlBox.clientHeight;
-        camera.updateProjectionMatrix();
-        renderer.setSize(webGlBox.clientWidth, webGlBox.clientHeight);
+    if(camera === null || renderer === null){
+        return;
     }
+    boxHalfX = webGlBox.clientWidth / 2;
+    boxHalfY = webGlBox.clientHeight / 2;
+    camera.aspect = webGlBox.clientWidth / webGlBox.clientHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(webGlBox.clientWidth, webGlBox.clientHeight);
 };
 
 const onZoomChange = () => {
+    if(camera === null){
+        return;
+    }
     const previousZoom = zoom;
     const sliderValue = parseInt(zoomSlider.value);
     zoom = 2000 - sliderValue;
@@ -193,13 +197,11 @@ export class ThreeModel implements Model {
         threeModel.classList.add("is-visible");
         size = universe.width();
         const numberOfCells = Math.pow(size, 3);
-        if (!sceneSet) {
-            scene = new THREE.Scene();
+        if (renderer === null) {
             initRenderer();
             initCamera();
             initLights();
             setListeners();
-            sceneSet = true;
         }
         initCells(numberOfCells);
         const cells = Utils.getCellsFromUniverse(universe);
@@ -230,7 +232,6 @@ export class ThreeModel implements Model {
     public destroy(): void {
         threeModel.classList.remove("is-visible");
         window.removeEventListener("resize", onWindowResize);
-        size = null;
         cellShapes.forEach(
             cell => {
                 scene.remove(cell);
