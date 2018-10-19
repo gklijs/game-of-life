@@ -1,13 +1,12 @@
-import {Utils} from "./utils";
 import {Model} from "./types";
 import {ThreeModel} from "./three-model";
 import {TwoModel} from "./two-model";
-import {Universe} from "game-of-life-3d";
+import {Universe, Utils} from "game-of-life-3d";
 
 let universe: Universe = null;
 let size: number = 10;
 let twoModelSelected: boolean = true;
-let model: Model = null;
+let model: Model = new TwoModel;
 let isSquare: boolean = true;
 
 const playPauseButton = document.getElementById("play-pause");
