@@ -71,8 +71,13 @@
             display: flex;
         }
 
+        h1{
+            margin: 0 10px 0 10px;
+        }
+
         p{
             word-break: break-word;
+            margin: 10px;
         }
     </style>
 </head>
@@ -92,9 +97,25 @@
     <div class="play-bar-item" id="figure-button" title="switch between spheres and cubes">🔲️</div>
 </div>
 <div id="info-model" class="toggle-content is-visible component">
-    <h1>This an example of the use of the wasm game of life 3d wasm</h1>
-    <p>bla bla</p>
+    <h1>This an example of the use of the wasm game of life 3D wasm</h1>
     <p id="info-box"></p>
+    <p>
+        In the top bar there are several options.<br/>
+        From left to right:<br/>
+        - either pause or run the universe<br/>
+        - control the speed of the universe<br/>
+        - the number of 'ticks' of the current universe<br/>
+        - (re)set to a random state<br/>
+        - (re)set to a clean state<br/>
+        - set the size, it's always cubical (4-50)<br/>
+        - move trough different models info/2D/3D<br/>
+        - display the cells as circles or squares<br/>
+    </p>
+    <p>
+        In the 2D model you can slide through different layers, and change the state of a cell by clicking on it.<br/>
+        In the 3D view, you can change the viewpoint, and zoom in or out by moving the slider.<br/>
+        Near the border or near the middle nothing happens, otherwise it will move slowly in the direction of the mouse.
+    </p>
 </div>
 <div id="two-model" class="toggle-content component">
     <div class="play-bar">

@@ -88,22 +88,6 @@ const bringInRange = (number: number, range: number) => {
 
 const dist = (newY: number) => Math.sqrt(Math.pow(zoom, 2) - Math.pow(newY, 2));
 
-const render = () => {
-    if(camera === null || renderer === null){
-        return;
-    }
-    if (moveY !== 0 || moveXZ !== 0) {
-        const newY = bringInRange(camera.position.y - moveY, zoom - 10);
-        const newDist = dist(newY);
-        const newAngle = Math.atan2(camera.position.z, camera.position.x) + (moveXZ * .1 * Math.PI / 180);
-        const newX = newDist * Math.cos(newAngle);
-        const newZ = newDist * Math.sin(newAngle);
-        camera.position.set(newX, newY, newZ);
-        camera.lookAt(scene.position);
-    }
-    renderer.render(scene, camera);
-};
-
 const inMiddle = (currentX: number, currentY: number) => {
     return currentX > boxHalfX * 0.2
         && currentX < window.innerWidth - boxHalfX * 0.2
@@ -206,8 +190,23 @@ export class ThreeModel implements Model {
                 scene.remove(cellShapes[idx]);
             }
         );
-        render()
     }
+
+    public render = () => {
+        if(camera === null || renderer === null){
+            return;
+        }
+        if (moveY !== 0 || moveXZ !== 0) {
+            const newY = bringInRange(camera.position.y - moveY, zoom - 10);
+            const newDist = dist(newY);
+            const newAngle = Math.atan2(camera.position.z, camera.position.x) + (moveXZ * .1 * Math.PI / 180);
+            const newX = newDist * Math.cos(newAngle);
+            const newZ = newDist * Math.sin(newAngle);
+            camera.position.set(newX, newY, newZ);
+            camera.lookAt(scene.position);
+        }
+        renderer.render(scene, camera);
+    };
 
     public destroy(): void {
         threeModel.classList.remove("is-visible");

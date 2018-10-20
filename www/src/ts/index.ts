@@ -23,24 +23,18 @@ let ticksPerRender = 1;
 let skipRenders = 1;
 let renders = 0;
 
-const updateCells = () => {
-    if(universe == null){
-        return;
-    }
-    const changes = Utils.getChanges(universe);
-    model.updateCells(changes[0], changes[1]);
-};
-
 const renderLoop = () => {
-    if(!paused && universe!= null){
+    if(!paused && universe!== null){
         renders ++;
         if (renders >= skipRenders) {
             universe.multi_tick(ticksPerRender);
             stepCounter.textContent = String(universe.ticks());
-            updateCells();
+            const changes = Utils.getChanges(universe);
+            model.updateCells(changes[0], changes[1]);
             renders = 0
         }
     }
+    model.render();
     requestAnimationFrame(renderLoop);
 };
 
@@ -54,6 +48,7 @@ const reset = (random: boolean) => {
     if(random){
         universe.randomize();
     }
+    universe.update_changes();
     stepCounter.textContent = String(universe.ticks());
     model.init(universe, shape);
 };
