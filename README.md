@@ -5,7 +5,7 @@ Its a 3d version of game of life using the the (6,6,5,3) rule using periodic bou
 
 ## How to use from npm
 
-You can view an example of using this with typescript [here](https://www.gameoflife3d.gklijs.tech).
+You can view an example of using this with typescript [here](http://gameoflife3d.gklijs.tech).
 The source for this is in the same [github repo](https://github.com/gklijs/game-of-life).
 
 You first need to import the Universe, and Utils like:
