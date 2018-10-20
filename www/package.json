@@ -4,7 +4,7 @@
   "description": "game of life implementation in typescript using wasm",
   "main": "dist/bootstrap.js",
   "scripts": {
-    "build": "webpack --config webpack.config.js --mode production",
+    "build": "webpack --config webpack.config.js --mode development",
     "start": "webpack-dev-server --mode development"
   },
   "author": "Gerard Klijs <g.klijs@gmail.com>",
@@ -14,7 +14,6 @@
     "@types/three": "^0.93.3",
     "@types/webpack": "^4.4.16",
     "copy-webpack-plugin": "^4.5.2",
-    "file-loader": "^2.0.0",
     "serve-static": "^1.13.2",
     "ts-loader": "^5.2.2",
     "typescript": "^2.9.2",

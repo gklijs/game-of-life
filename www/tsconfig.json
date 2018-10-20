@@ -5,7 +5,7 @@
     "target": "es6",
     "moduleResolution": "node",
     "module": "commonjs",
-    "sourceMap": true,
+    "sourceMap": false,
     "strict": true,
     "lib": [
       "es6",

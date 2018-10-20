@@ -19,19 +19,6 @@ module.exports = {
                 test: /\.tsx?$/,
                 loader: 'ts-loader',
                 exclude: /node_modules/
-            },
-            {
-                test: /\.wasm$/,
-                type: 'javascript/auto',
-                use: [
-                    {
-                        loader: 'file-loader',
-                        options: {
-                            name: 'wasm/[name].[hash].[ext]',
-                            publicPath: '../'
-                        }
-                    }
-                ]
             }
         ]
     }
