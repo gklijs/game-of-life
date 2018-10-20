@@ -10,7 +10,6 @@ module.exports = {
     resolve: {
         extensions: [".tsx", ".ts", ".js", ".wasm"]
     },
-    devtool: 'source-map',
     plugins: [
         new CopyWebpackPlugin(['src/index.html'])
     ],
@@ -22,9 +21,17 @@ module.exports = {
                 exclude: /node_modules/
             },
             {
-                test: /\.js$/,
-                loader: "source-map-loader",
-                enforce: "pre"
+                test: /\.wasm$/,
+                type: 'javascript/auto',
+                use: [
+                    {
+                        loader: 'file-loader',
+                        options: {
+                            name: 'wasm/[name].[hash].[ext]',
+                            publicPath: '../'
+                        }
+                    }
+                ]
             }
         ]
     }

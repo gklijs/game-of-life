@@ -4,19 +4,18 @@
   "description": "game of life implementation in typescript using wasm",
   "main": "dist/bootstrap.js",
   "scripts": {
-    "build": "webpack --config webpack.config.js --mode development",
+    "build": "webpack --config webpack.config.js --mode production",
     "start": "webpack-dev-server --mode development"
   },
   "author": "Gerard Klijs <g.klijs@gmail.com>",
   "license": "(MIT OR Apache-2.0)",
+  "private": true,
   "devDependencies": {
-    "@types/lodash": "^4.14.117",
     "@types/three": "^0.93.3",
     "@types/webpack": "^4.4.16",
     "copy-webpack-plugin": "^4.5.2",
-    "generate-release": "^1.1.1",
+    "file-loader": "^2.0.0",
     "serve-static": "^1.13.2",
-    "source-map-loader": "^0.2.4",
     "ts-loader": "^5.2.2",
     "typescript": "^2.9.2",
     "webpack": "^4.20.2",
@@ -24,6 +23,7 @@
     "webpack-dev-server": "^3.1.5"
   },
   "dependencies": {
+    "game-of-life-3d": "^1.0.0",
     "three": "^0.97.0"
   }
 }

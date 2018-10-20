@@ -1,11 +1,5 @@
 {
   "compilerOptions": {
-    "baseUrl": "",
-    "paths": {
-      "game-of-life-3d": [
-        "node_modules/game-of-life-3d"
-      ]
-    },
     "outDir": "./build/",
     "allowJs": true,
     "target": "es6",
