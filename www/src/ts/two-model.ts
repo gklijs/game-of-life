@@ -188,6 +188,8 @@ export class TwoModel implements Model {
         );
     }
 
+    public render = () => {};
+
     public destroy(): void {
         twoModel.classList.remove("is-visible");
         window.removeEventListener("resize", onWindowResize);
