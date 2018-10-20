@@ -1,10 +1,10 @@
 [package]
 name = "game-of-life-3d"
-version = "0.1.0"
+version = "1.0.0"
 authors = ["Gerard Klijs <g.klijs@gmail.com>"]
 description = "3d wasm version of game of life"
-homepage = "https://github.com/gklijs/roads-rivers-and-residences"
-repository = "https://github.com/gklijs/roads-rivers-and-residences"
+homepage = "https://github.com/gklijs/game-of-life"
+repository = "https://github.com/gklijs/game-of-life"
 readme = "README.md"
 license = "MIT/Apache-2.0"
 

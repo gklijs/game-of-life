@@ -99,22 +99,18 @@ modelButton.addEventListener("click", event => {
         universe = Universe.new(size, size, size);
         universe.randomize();
     }
+    model.destroy();
     if (model instanceof InfoModel) {
-        model.destroy();
         model = new TwoModel;
-        model.init(universe, shape);
         modelButton.innerText = "2D"
     }else if (model instanceof TwoModel){
-        model.destroy();
         model = new ThreeModel;
-        model.init(universe, shape);
         modelButton.innerText = "3D"
     }else{
-        model.destroy();
         model = new InfoModel();
-        model.init(universe, shape);
         modelButton.innerText = "ℹ️"
     }
+    model.init(universe, shape);
 });
 
 figureButton.addEventListener("click", event => {
