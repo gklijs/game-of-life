@@ -12,7 +12,7 @@ license = "MIT/Apache-2.0"
 crate-type = ["cdylib"]
 
 [features]
-default-features = ["console_error_panic_hook", "wee_alloc"]
+default-features = ["wee_alloc"]
 
 [dependencies]
 cfg-if = "0.1.2"

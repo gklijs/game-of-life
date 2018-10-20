@@ -70,6 +70,10 @@
         .toggle-content.is-visible {
             display: flex;
         }
+
+        p{
+            word-break: break-word;
+        }
     </style>
 </head>
 <body>
@@ -84,10 +88,15 @@
     <label class="play-bar-item" title="change size, this will also reset the game">
         ↔️<input id="size-slider" type="range" min="4" max="50" step="1" value="10">
     </label>
-    <div class="play-bar-item" id="model-button" title="switch between 2d and 3d">2D</div>
+    <div class="play-bar-item" id="model-button" title="switch between the different models">ℹ️</div>
     <div class="play-bar-item" id="figure-button" title="switch between spheres and cubes">🔲️</div>
 </div>
-<div id="two-model" class="toggle-content is-visible component">
+<div id="info-model" class="toggle-content is-visible component">
+    <h1>This an example of the use of the wasm game of life 3d wasm</h1>
+    <p>bla bla</p>
+    <p id="info-box"></p>
+</div>
+<div id="two-model" class="toggle-content component">
     <div class="play-bar">
         <label class="play-bar-item" title="the layer shown">
             ↕️<input id="layer-slider" type="range" min="0" max="9" step="1" value="0">

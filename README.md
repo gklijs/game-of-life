@@ -31,6 +31,13 @@ export class Utils {
     static getArrayFromMemory (pointer, size){
         return new Uint32Array(wasm.memory.buffer, pointer, size);
     };
+    
+    static getChanges(universe){
+        universe.update_changes();
+        const births = Utils.getArrayFromMemory(universe.births(), universe.nr_of_births());
+        const deaths = Utils.getArrayFromMemory(universe.deaths(), universe.nr_of_deaths());
+        return [births, deaths];
+    }
 }
 ```
 
@@ -44,6 +51,8 @@ export class Utils{
     static isCellAlive(idx: number, cells: Uint32Array): boolean;
 
     static getArrayFromMemory(pointer: number, size: number): Uint32Array;
+    
+    static getChanges(universe: Universe): [Uint32Array, Uint32Array];
 }
 ```
 

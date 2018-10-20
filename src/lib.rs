@@ -19,6 +19,7 @@ pub struct Universe {
     a_latest: bool,
     to_alive: Vec<u32>,
     to_death: Vec<u32>,
+    ticks: u32
 }
 
 fn get_index(column: u32, row: u32, layer: u32, width: u32, height: u32) -> usize {
@@ -166,14 +167,6 @@ impl Universe {
         self.height
     }
 
-    pub fn nr_of_births(&self) -> u32 {
-        self.to_alive.len() as u32
-    }
-
-    pub fn nr_of_deaths(&self) -> u32 {
-        self.to_death.len() as u32
-    }
-
     pub fn cells(&self) -> *const u32 {
         if self.a_latest {
             self.cells_a.as_slice().as_ptr()
@@ -182,12 +175,24 @@ impl Universe {
         }
     }
 
+    pub fn nr_of_births(&self) -> u32 {
+        self.to_alive.len() as u32
+    }
+
+    pub fn nr_of_deaths(&self) -> u32 {
+        self.to_death.len() as u32
+    }
+
     pub fn births(&self) -> *const u32 {
         self.to_alive.as_ptr()
     }
 
     pub fn deaths(&self) -> *const u32 {
         self.to_death.as_ptr()
+    }
+
+    pub fn ticks(&self) -> u32{
+        self.ticks
     }
 
     pub fn update_changes(&mut self) {
@@ -267,6 +272,12 @@ impl Universe {
         }
     }
 
+    pub fn multi_tick(&mut self, ticks: u32){
+        for _ in 0..ticks{
+            self.tick()
+        }
+    }
+
     pub fn tick(&mut self) {
         let _timer = Timer::new("Universe::tick");
         let (next, current) = if self.a_latest {
@@ -300,18 +311,35 @@ impl Universe {
             }
         }
         self.a_latest = !self.a_latest;
+        self.ticks = self.ticks + 1
     }
 
-    pub fn new(width: u32, height: u32, depth: u32, fill_random: bool) -> Universe {
-        let size = (width * height * depth) as usize;
-        let mut cells_a = FixedBitSet::with_capacity(size);
-        if fill_random {
-            for i in 0..size {
-                if js_sys::Math::random() < 0.3 {
-                    cells_a.put(i as usize);
-                }
-            }
+    pub fn reset(&mut self){
+        self.cells_a.clear();
+        self.cells_b.clear();
+        self.cells_js.clear();
+        self.to_alive.clear();
+        self.to_death.clear();
+        self.ticks = 0;
+    }
+
+    pub fn randomize(&mut self){
+        let current = if self.a_latest {
+            &mut self.cells_a
+        } else {
+            &mut self.cells_b
         };
+        let size = (self.width * self.height * self.depth) as usize;
+        for i in 0..size {
+            if js_sys::Math::random() < 0.2 {
+                current.put(i as usize);
+            }
+        }
+    }
+
+    pub fn new(width: u32, height: u32, depth: u32) -> Universe {
+        let size = (width * height * depth) as usize;
+        let cells_a = FixedBitSet::with_capacity(size);
         let cells_b = FixedBitSet::with_capacity(size);
         let cells_js = FixedBitSet::with_capacity(size);
         let to_alive = Vec::with_capacity(size);
@@ -327,6 +355,7 @@ impl Universe {
             a_latest: true,
             to_alive,
             to_death,
+            ticks: 0
         }
     }
 }

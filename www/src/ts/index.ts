@@ -1,13 +1,13 @@
-import {Model} from "./types";
+import {Model, Shape} from "./types";
 import {ThreeModel} from "./three-model";
 import {TwoModel} from "./two-model";
 import {Universe, Utils} from "game-of-life-3d";
+import {InfoModel} from "./info-model";
 
 let universe: Universe | null = null;
 let size: number = 10;
-let twoModelSelected: boolean = true;
-let model: Model = new TwoModel;
-let isSquare: boolean = true;
+let model: Model = new InfoModel();
+let shape: Shape = Shape.square;
 
 const playPauseButton: HTMLElement = document.getElementById("play-pause")!;
 const speedSlider: HTMLInputElement = <HTMLInputElement>document.getElementById("speed-slider");
@@ -21,44 +21,41 @@ const figureButton: HTMLElement = document.getElementById("figure-button")!;
 let paused = true;
 let ticksPerRender = 1;
 let skipRenders = 1;
-let totalRenders = 0;
-let totalSteps = 0;
+let renders = 0;
 
 const updateCells = () => {
     if(universe == null){
         return;
     }
-    universe.update_changes();
-    const births = Utils.getArrayFromMemory(universe.births(), universe.nr_of_births());
-    const deaths = Utils.getArrayFromMemory(universe.deaths(), universe.nr_of_deaths());
-
-    model.updateCells(births, deaths);
+    const changes = Utils.getChanges(universe);
+    model.updateCells(changes[0], changes[1]);
 };
 
 const renderLoop = () => {
     if(!paused && universe!= null){
-        if (totalRenders % skipRenders === 0) {
-            for (let i = 0; i < ticksPerRender; i++) {
-                universe.tick();
-                totalSteps++;
-            }
-            stepCounter.textContent = String(totalSteps);
+        renders ++;
+        if (renders >= skipRenders) {
+            universe.multi_tick(ticksPerRender);
+            stepCounter.textContent = String(universe.ticks());
+            updateCells();
+            renders = 0
         }
-        totalRenders++;
     }
-    updateCells();
     requestAnimationFrame(renderLoop);
 };
 
 const reset = (random: boolean) => {
     model.destroy();
-    if (universe !== null) {
-        universe.free();
+    if( universe === null || universe.width() !== size){
+        universe = Universe.new(size, size, size);
+    }else{
+        universe.reset()
     }
-    universe = Universe.new(size, size, size, random);
-    totalSteps = 0;
-    stepCounter.textContent = String(totalSteps);
-    model.init(universe, isSquare);
+    if(random){
+        universe.randomize();
+    }
+    stepCounter.textContent = String(universe.ticks());
+    model.init(universe, shape);
 };
 
 playPauseButton.addEventListener("click", event => {
@@ -99,35 +96,41 @@ stopButton.addEventListener("click", event => {
 
 modelButton.addEventListener("click", event => {
     if(universe === null){
-        universe = Universe.new(size, size, size, true);
+        universe = Universe.new(size, size, size);
+        universe.randomize();
     }
-    if (twoModelSelected) {
+    if (model instanceof InfoModel) {
+        model.destroy();
+        model = new TwoModel;
+        model.init(universe, shape);
+        modelButton.innerText = "2D"
+    }else if (model instanceof TwoModel){
         model.destroy();
         model = new ThreeModel;
-        model.init(universe, isSquare);
-        twoModelSelected = false;
+        model.init(universe, shape);
         modelButton.innerText = "3D"
     }else{
         model.destroy();
-        model = new TwoModel;
-        model.init(universe, isSquare);
-        twoModelSelected = true;
-        modelButton.innerText = "2D"
+        model = new InfoModel();
+        model.init(universe, shape);
+        modelButton.innerText = "ℹ️"
     }
 });
 
 figureButton.addEventListener("click", event => {
     if(universe === null){
-        universe = Universe.new(size, size, size, true);
+        universe = Universe.new(size, size, size);
+        universe.randomize();
     }
-    if(isSquare){
+    if(shape === Shape.square){
+        shape = Shape.circle;
         figureButton.innerText = "🔘️"
     }else{
+        shape = Shape.square;
         figureButton.innerText = "🔲️"
     }
-    isSquare = !isSquare;
     model.destroy();
-    model.init(universe, isSquare);
+    model.init(universe, shape);
 });
 
 renderLoop();
