@@ -167,6 +167,10 @@ impl Universe {
         self.height
     }
 
+    pub fn depth(&self) -> u32 {
+        self.depth
+    }
+
     pub fn cells(&self) -> *const u32 {
         if self.a_latest {
             self.cells_a.as_slice().as_ptr()
