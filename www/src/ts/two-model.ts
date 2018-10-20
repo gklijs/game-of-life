@@ -1,4 +1,4 @@
-import {Model} from "./types";
+import {Model, Shape} from "./types";
 import {Universe, Utils} from "game-of-life-3d";
 
 const twoModel: HTMLElement = document.getElementById("two-model")!;
@@ -14,7 +14,7 @@ const ALIVE_COLOR = "#FF0000";
 let universeReference: Universe | null = null;
 let size: number = 10;
 let cellSize: number = 5;
-let isSquare: boolean = true;
+let shapeReference: Shape = Shape.square;
 let layer: number = 0;
 let eventHandlersSet = false;
 
@@ -81,7 +81,7 @@ const drawAllCellsInLayer = (cells: Uint32Array) => {
             if (!Utils.isCellAlive(idx, cells)) {
                 continue;
             }
-            if (isSquare) {
+            if (shapeReference === Shape.square) {
                 drawSquare(col, row);
             } else {
                 drawCircle(col, row);
@@ -145,8 +145,8 @@ const changeLayer = () => {
 
 export class TwoModel implements Model {
 
-    public init(universe: Universe, square: boolean): void {
-        isSquare = square;
+    public init(universe: Universe, shape: Shape): void {
+        shapeReference = shape;
         twoModel.classList.add("is-visible");
         size = universe.width();
         universeReference = universe;
@@ -166,7 +166,7 @@ export class TwoModel implements Model {
                 }
                 const row = Math.floor((idx - (layer * size * size)) / size);
                 const col = idx % size;
-                if (isSquare) {
+                if (shapeReference === Shape.square) {
                     drawSquare(col, row);
                 } else {
                     drawCircle(col, row);

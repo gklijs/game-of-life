@@ -1,6 +1,6 @@
 import * as THREE from "three";
 
-import {Model} from "./types";
+import {Model, Shape} from "./types";
 import {Universe, Utils} from "game-of-life-3d";
 import {Mesh, PerspectiveCamera, Scene, WebGLRenderer} from "three";
 
@@ -14,9 +14,7 @@ let camera: PerspectiveCamera | null = null;
 let renderer: WebGLRenderer | null = null;
 let size: number = 5;
 let cellShapes: Array<Mesh> = [];
-let isSquare: boolean = true;
 let moveXZ: number = 0;
-let directionXZ: number = 1;
 let moveY: number = 0;
 let boxHalfX: number = 500;
 let boxHalfY: number = 500;
@@ -40,10 +38,10 @@ const initRenderer = () => {
     return renderer;
 };
 
-const initCells = (numberOfCells: number) => {
+const initCells = (numberOfCells: number, shape: Shape) => {
     const cellSize = Math.floor(200 / size);
     cellShapes = new Array(numberOfCells);
-    const geometry = isSquare ? new THREE.BoxBufferGeometry(cellSize * 2, cellSize * 2, cellSize * 2) : new THREE.SphereBufferGeometry(cellSize, 32, 32);
+    const geometry = shape === Shape.square ? new THREE.BoxBufferGeometry(cellSize * 2, cellSize * 2, cellSize * 2) : new THREE.SphereBufferGeometry(cellSize, 32, 32);
     const material = new THREE.MeshStandardMaterial({color: 0xFF0000});
     const liveCell = new THREE.Mesh(geometry, material);
     liveCell.castShadow = true;
@@ -88,17 +86,7 @@ const bringInRange = (number: number, range: number) => {
     return number
 };
 
-const getThirdCord = (firstCord: number, secondCord: number, currentThirdCord: number) => {
-    const roomLeft = Math.pow(zoom, 2) - Math.pow(secondCord, 2) - Math.pow(firstCord, 2);
-    if (roomLeft < 0) {
-        return 0;
-    }
-    if (currentThirdCord > 0) {
-        return Math.sqrt(roomLeft);
-    } else {
-        return -Math.sqrt(roomLeft)
-    }
-};
+const dist = (newY: number) => Math.sqrt(Math.pow(zoom, 2) - Math.pow(newY, 2));
 
 const render = () => {
     if(camera === null || renderer === null){
@@ -106,17 +94,10 @@ const render = () => {
     }
     if (moveY !== 0 || moveXZ !== 0) {
         const newY = bringInRange(camera.position.y - moveY, zoom - 10);
-        const maxX = Math.sqrt(Math.pow(zoom, 2) - Math.pow(newY, 2));
-        let newX;
-        let newZ;
-        if (Math.abs(camera.position.x + moveXZ * directionXZ) > maxX) {
-            directionXZ = -1 * directionXZ;
-            newX = camera.position.x > 0 ? maxX - 0.5 : 0.5 - maxX;
-            newZ = -getThirdCord(newX, newY, camera.position.z)
-        } else {
-            newX = bringInRange(camera.position.x + moveXZ * directionXZ, maxX);
-            newZ = getThirdCord(newX, newY, camera.position.z);
-        }
+        const newDist = dist(newY);
+        const newAngle = Math.atan2(camera.position.z, camera.position.x) + (moveXZ * .1 * Math.PI / 180);
+        const newX = newDist * Math.cos(newAngle);
+        const newZ = newDist * Math.sin(newAngle);
         camera.position.set(newX, newY, newZ);
         camera.lookAt(scene.position);
     }
@@ -192,8 +173,7 @@ const onZoomChange = () => {
 };
 
 export class ThreeModel implements Model {
-    public init(universe: Universe, square: boolean): void {
-        isSquare = square;
+    public init(universe: Universe, shape: Shape): void {
         threeModel.classList.add("is-visible");
         size = universe.width();
         const numberOfCells = Math.pow(size, 3);
@@ -203,7 +183,7 @@ export class ThreeModel implements Model {
             initLights();
             setListeners();
         }
-        initCells(numberOfCells);
+        initCells(numberOfCells, shape);
         const cells = Utils.getCellsFromUniverse(universe);
         for (let idx = 0; idx < numberOfCells; idx++) {
             if (Utils.isCellAlive(idx, cells)) {
