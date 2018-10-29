@@ -1,6 +1,6 @@
 [package]
 name = "game-of-life-3d"
-version = "1.0.0"
+version = "1.1.0"
 authors = ["Gerard Klijs <g.klijs@gmail.com>"]
 description = "3d wasm version of game of life"
 homepage = "https://github.com/gklijs/game-of-life"
@@ -29,7 +29,7 @@ console_error_panic_hook = { version = "0.1.1", optional = true }
 # `wee_alloc` is a tiny allocator for wasm that is only ~1K in code size
 # compared to the default allocator's ~10K. It is slower than the default
 # allocator, however.
-wee_alloc = { version = "0.4.1", optional = true }
+wee_alloc = { version = "0.4.2", optional = true }
 
 [profile.release]
 debug = false

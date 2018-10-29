@@ -71,7 +71,17 @@ export class Utils {
     static getCellsFromUniverse (universe){
         const cellsPtr = universe.cells();
         universe.update_changes();
-        return new Uint32Array(wasm.memory.buffer, cellsPtr, Math.ceil(Math.pow(universe.width(), 3) / 32))
+        return new Uint32Array(wasm.memory.buffer, cellsPtr, Math.ceil(universe.depth() * universe.width() * universe.height() / 32))
+    };
+
+    static getCellsAsBool (universe){
+        const total = universe.depth() * universe.width() * universe.height();
+        const result = new Array(total);
+        const cells = this.getCellsFromUniverse(universe);
+        for(let i = 0; i < total; i++){
+            result[i] = this.isCellAlive(i, cells);
+        }
+        return result;
     };
 
     static isCellAlive (idx, cells) {
@@ -83,7 +93,7 @@ export class Utils {
     static getArrayFromMemory (pointer, size){
         return new Uint32Array(wasm.memory.buffer, pointer, size);
     };
-    
+
     static getChanges(universe){
         universe.update_changes();
         const births = Utils.getArrayFromMemory(universe.births(), universe.nr_of_births());
@@ -100,10 +110,12 @@ export class Utils{
 
     static getCellsFromUniverse(universe: Universe): Uint32Array;
 
+    static getCellsAsBool(universe: Universe): boolean[];
+
     static isCellAlive(idx: number, cells: Uint32Array): boolean;
 
     static getArrayFromMemory(pointer: number, size: number): Uint32Array;
-    
+
     static getChanges(universe: Universe): [Uint32Array, Uint32Array];
 }
 ```
