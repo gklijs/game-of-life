@@ -1,13 +1,15 @@
-import * as THREE from 'three';
+import * as THREE from "three";
 
-import { Universe, Utils } from 'game-of-life-3d';
-import { Mesh, PerspectiveCamera, Scene, WebGLRenderer } from 'three';
-import { IModel, Shape } from './types';
+import { Universe, Utils } from "game-of-life-3d";
+import { Mesh, PerspectiveCamera, Scene, WebGLRenderer } from "three";
+import { IModel, Shape } from "./types";
 
-const threeModel: HTMLElement = document.getElementById('three-model')!;
-const webGlBox: HTMLElement = document.getElementById('web-gl-box')!;
-const zoomSlider: HTMLInputElement = document.getElementById('zoom-slider') as HTMLInputElement;
-const zoomDisplay: HTMLElement = document.getElementById('zoom-display')!;
+const threeModel: HTMLElement = document.getElementById("three-model")!;
+const webGlBox: HTMLElement = document.getElementById("web-gl-box")!;
+const zoomSlider: HTMLInputElement = document.getElementById(
+  "zoom-slider"
+) as HTMLInputElement;
+const zoomDisplay: HTMLElement = document.getElementById("zoom-display")!;
 
 const scene: Scene = new THREE.Scene();
 let camera: PerspectiveCamera | null = null;
@@ -21,7 +23,12 @@ let boxHalfY: number = 500;
 let zoom = 1000;
 
 const initCamera = () => {
-  camera = new THREE.PerspectiveCamera(50, webGlBox.clientWidth / webGlBox.clientHeight, 1, 2000);
+  camera = new THREE.PerspectiveCamera(
+    50,
+    webGlBox.clientWidth / webGlBox.clientHeight,
+    1,
+    2000
+  );
   camera.position.set(300, 905, 300);
   camera.lookAt(scene.position);
 };
@@ -55,7 +62,11 @@ const initCells = (numberOfCells: number, shape: Shape) => {
     for (let row = 0; row < size; row++) {
       for (let column = 0; column < size; column++) {
         const cell = liveCell.clone();
-        cell.position.set(correction + column * distance, correction + layer * distance, correction + row * distance);
+        cell.position.set(
+          correction + column * distance,
+          correction + layer * distance,
+          correction + row * distance
+        );
         cellShapes[Utils.getIndex(column, row, layer, size, size)] = cell;
       }
     }
@@ -73,10 +84,10 @@ const initLights = () => {
 };
 
 const setListeners = () => {
-  webGlBox.addEventListener('mousemove', onDocumentMouseMove);
-  webGlBox.addEventListener('touchstart', onDocumentTouchStart);
-  webGlBox.addEventListener('touchmove', onDocumentTouchMove);
-  zoomSlider.addEventListener('change', onZoomChange);
+  webGlBox.addEventListener("mousemove", onDocumentMouseMove);
+  webGlBox.addEventListener("touchstart", onDocumentTouchStart);
+  webGlBox.addEventListener("touchmove", onDocumentTouchMove);
+  zoomSlider.addEventListener("change", onZoomChange);
 };
 
 const bringInRange = (numberValue: number, range: number) => {
@@ -102,12 +113,18 @@ const inMiddle = (currentX: number, currentY: number) => {
 
 const updateMove = (currentX: number, currentY: number) => {
   if (inMiddle(currentX, currentY)) {
-    if (currentX > boxHalfX * 1.2 || currentX < window.innerWidth - boxHalfX * 1.2) {
+    if (
+      currentX > boxHalfX * 1.2 ||
+      currentX < window.innerWidth - boxHalfX * 1.2
+    ) {
       moveXZ = currentX > boxHalfX ? 1 : -1;
     } else {
       moveXZ = 0;
     }
-    if (currentY > boxHalfY * 1.2 || currentY < window.innerHeight - boxHalfY * 1.2) {
+    if (
+      currentY > boxHalfY * 1.2 ||
+      currentY < window.innerHeight - boxHalfY * 1.2
+    ) {
       moveY = currentY > boxHalfY ? 1 : -1;
     } else {
       moveY = 0;
@@ -163,7 +180,7 @@ const onZoomChange = () => {
 
 export class ThreeModel implements IModel {
   public init(universe: Universe, shape: Shape): void {
-    threeModel.classList.add('is-visible');
+    threeModel.classList.add("is-visible");
     size = universe.width();
     const numberOfCells = Math.pow(size, 3);
     if (renderer === null) {
@@ -180,7 +197,7 @@ export class ThreeModel implements IModel {
       }
     }
     onWindowResize();
-    window.addEventListener('resize', onWindowResize);
+    window.addEventListener("resize", onWindowResize);
   }
 
   public updateCells(births: Uint32Array, deaths: Uint32Array): void {
@@ -199,7 +216,9 @@ export class ThreeModel implements IModel {
     if (moveY !== 0 || moveXZ !== 0) {
       const newY = bringInRange(camera.position.y - moveY, zoom - 10);
       const newDist = dist(newY);
-      const newAngle = Math.atan2(camera.position.z, camera.position.x) + (moveXZ * 0.1 * Math.PI) / 180;
+      const newAngle =
+        Math.atan2(camera.position.z, camera.position.x) +
+        (moveXZ * 0.1 * Math.PI) / 180;
       const newX = newDist * Math.cos(newAngle);
       const newZ = newDist * Math.sin(newAngle);
       camera.position.set(newX, newY, newZ);
@@ -209,8 +228,8 @@ export class ThreeModel implements IModel {
   };
 
   public destroy(): void {
-    threeModel.classList.remove('is-visible');
-    window.removeEventListener('resize', onWindowResize);
+    threeModel.classList.remove("is-visible");
+    window.removeEventListener("resize", onWindowResize);
     cellShapes.forEach(cell => {
       scene.remove(cell);
       cell.geometry.dispose();

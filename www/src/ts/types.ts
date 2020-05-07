@@ -1,4 +1,4 @@
-import { Universe } from 'game-of-life-3d';
+import { Universe } from "game-of-life-3d";
 
 export interface IModel {
   init(universe: Universe, shape: Shape): void;

@@ -1,15 +1,19 @@
-import { Universe, Utils } from 'game-of-life-3d';
-import { IModel, Shape } from './types';
+import { Universe, Utils } from "game-of-life-3d";
+import { IModel, Shape } from "./types";
 
-const twoModel: HTMLElement = document.getElementById('two-model')!;
-const canvas: HTMLCanvasElement = document.getElementById('canvas') as HTMLCanvasElement;
-const ctx: CanvasRenderingContext2D = canvas.getContext('2d')!;
-const layerSlider: HTMLInputElement = document.getElementById('layer-slider') as HTMLInputElement;
-const layerDisplay: HTMLElement = document.getElementById('layer-display')!;
+const twoModel: HTMLElement = document.getElementById("two-model")!;
+const canvas: HTMLCanvasElement = document.getElementById(
+  "canvas"
+) as HTMLCanvasElement;
+const ctx: CanvasRenderingContext2D = canvas.getContext("2d")!;
+const layerSlider: HTMLInputElement = document.getElementById(
+  "layer-slider"
+) as HTMLInputElement;
+const layerDisplay: HTMLElement = document.getElementById("layer-display")!;
 
-const GRID_COLOR = '#000000';
-const DEAD_COLOR = '#FFFFFF';
-const ALIVE_COLOR = '#FF0000';
+const GRID_COLOR = "#000000";
+const DEAD_COLOR = "#FFFFFF";
+const ALIVE_COLOR = "#FF0000";
 
 let universeReference: Universe | null = null;
 let size: number = 10;
@@ -20,8 +24,8 @@ let eventHandlersSet = false;
 
 const setEventHandlers = () => {
   if (!eventHandlersSet) {
-    canvas.addEventListener('click', editUniverse);
-    layerSlider.addEventListener('change', changeLayer);
+    canvas.addEventListener("click", editUniverse);
+    layerSlider.addEventListener("change", changeLayer);
     eventHandlersSet = true;
   }
 };
@@ -53,12 +57,23 @@ const drawFromUniverse = () => {
 };
 
 const drawSquare = (col: number, row: number) => {
-  ctx.fillRect(col * (cellSize + 1) + 1, row * (cellSize + 1) + 1, cellSize, cellSize);
+  ctx.fillRect(
+    col * (cellSize + 1) + 1,
+    row * (cellSize + 1) + 1,
+    cellSize,
+    cellSize
+  );
 };
 
 const drawCircle = (col: number, row: number) => {
   ctx.beginPath();
-  ctx.arc(col * (cellSize + 1) + 1 + cellSize / 2, row * (cellSize + 1) + 1 + cellSize / 2, cellSize / 2, 0, 2 * Math.PI);
+  ctx.arc(
+    col * (cellSize + 1) + 1 + cellSize / 2,
+    row * (cellSize + 1) + 1 + cellSize / 2,
+    cellSize / 2,
+    0,
+    2 * Math.PI
+  );
   ctx.fill();
 };
 
@@ -136,13 +151,13 @@ const changeLayer = () => {
 export class TwoModel implements IModel {
   public init(universe: Universe, shape: Shape): void {
     shapeReference = shape;
-    twoModel.classList.add('is-visible');
+    twoModel.classList.add("is-visible");
     size = universe.width();
     universeReference = universe;
     layerSlider.max = String(size - 1);
     onWindowResize();
     setEventHandlers();
-    window.addEventListener('resize', onWindowResize);
+    window.addEventListener("resize", onWindowResize);
   }
 
   public updateCells(births: Uint32Array, deaths: Uint32Array): void {
@@ -178,8 +193,8 @@ export class TwoModel implements IModel {
   };
 
   public destroy(): void {
-    twoModel.classList.remove('is-visible');
-    window.removeEventListener('resize', onWindowResize);
+    twoModel.classList.remove("is-visible");
+    window.removeEventListener("resize", onWindowResize);
     universeReference = null;
   }
 }
