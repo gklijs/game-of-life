@@ -57,7 +57,7 @@ const reset = (random: boolean) => {
   model.init(universe, shape);
 };
 
-playPauseButton.addEventListener("click", event => {
+playPauseButton.addEventListener("click", () => {
   if (paused) {
     playPauseButton.textContent = "⏸";
     paused = false;
@@ -67,7 +67,7 @@ playPauseButton.addEventListener("click", event => {
   }
 });
 
-speedSlider.addEventListener("change", event => {
+speedSlider.addEventListener("change", () => {
   const speedValue = parseInt(speedSlider.value, 10);
   if (speedValue >= 10) {
     skipRenders = 1;
@@ -78,22 +78,22 @@ speedSlider.addEventListener("change", event => {
   }
 });
 
-sizeSlider.addEventListener("change", event => {
+sizeSlider.addEventListener("change", () => {
   size = parseInt(sizeSlider.value, 10);
   reset(true);
 });
 
-resetButton.addEventListener("click", event => {
+resetButton.addEventListener("click", () => {
   reset(true);
 });
 
-stopButton.addEventListener("click", event => {
+stopButton.addEventListener("click", () => {
   playPauseButton.textContent = "▶️";
   paused = true;
   reset(false);
 });
 
-modelButton.addEventListener("click", event => {
+modelButton.addEventListener("click", () => {
   if (universe === null) {
     universe = Universe.new(size, size, size);
     universe.randomize();
@@ -112,7 +112,7 @@ modelButton.addEventListener("click", event => {
   model.init(universe, shape);
 });
 
-figureButton.addEventListener("click", event => {
+figureButton.addEventListener("click", () => {
   if (universe === null) {
     universe = Universe.new(size, size, size);
     universe.randomize();

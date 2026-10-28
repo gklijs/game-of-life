@@ -1,10 +1,3 @@
-extern crate cfg_if;
-extern crate wasm_bindgen;
-extern crate js_sys;
-extern crate fixedbitset;
-
-mod utils;
-
 use wasm_bindgen::prelude::*;
 use fixedbitset::FixedBitSet;
 
@@ -172,10 +165,11 @@ impl Universe {
     }
 
     pub fn cells(&self) -> *const u32 {
+        // Blocks are `usize`, which is 32 bits on wasm32, so JS can view them as a `Uint32Array`.
         if self.a_latest {
-            self.cells_a.as_slice().as_ptr()
+            self.cells_a.as_slice().as_ptr() as *const u32
         } else {
-            self.cells_b.as_slice().as_ptr()
+            self.cells_b.as_slice().as_ptr() as *const u32
         }
     }
 
@@ -315,7 +309,7 @@ impl Universe {
             }
         }
         self.a_latest = !self.a_latest;
-        self.ticks = self.ticks + 1
+        self.ticks += 1
     }
 
     pub fn reset(&mut self){
@@ -336,7 +330,7 @@ impl Universe {
         let size = (self.width * self.height * self.depth) as usize;
         for i in 0..size {
             if js_sys::Math::random() < 0.2 {
-                current.put(i as usize);
+                current.put(i);
             }
         }
     }

@@ -1,12 +1,12 @@
 import { Universe, Utils } from "game-of-life-3d";
-import { IModel, Shape } from "./types";
+import { IModel } from "./types";
 
 const infoModel: HTMLElement = document.getElementById("info-model")!;
 const infoBox: HTMLElement = document.getElementById("info-box")!;
 let alive: number = 0;
 
 export class InfoModel implements IModel {
-  public init(universe: Universe, shape: Shape): void {
+  public init(universe: Universe): void {
     const cells = Utils.getCellsFromUniverse(universe);
     for (let layer = 0; layer < universe.depth(); layer++) {
       for (let row = 0; row < universe.height(); row++) {
