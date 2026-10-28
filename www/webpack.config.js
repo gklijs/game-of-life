@@ -1,7 +1,6 @@
 const path = require('path');
 const CopyWebpackPlugin = require("copy-webpack-plugin");
-const TSLintPlugin = require('tslint-webpack-plugin');
-const PrettierPlugin = require("prettier-webpack-plugin");
+const ESLintPlugin = require('eslint-webpack-plugin');
 
 module.exports = {
   entry: "./src/js/bootstrap.js",
@@ -13,9 +12,8 @@ module.exports = {
     extensions: [".tsx", ".ts", ".js", ".wasm"]
   },
   plugins: [
-    new CopyWebpackPlugin(['src/index.html']),
-    new TSLintPlugin({files: ['src/ts/**/*.ts', 'src/js/**/*.js']}),
-    new PrettierPlugin()
+    new CopyWebpackPlugin({patterns: ['src/index.html']}),
+    new ESLintPlugin({extensions: ['ts', 'js'], files: ['src']})
   ],
   module: {
     rules: [
